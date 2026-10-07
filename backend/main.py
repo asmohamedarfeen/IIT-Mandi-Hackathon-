@@ -3,6 +3,15 @@ CardioVision AI - Main FastAPI Application
 Modular architecture following AGENT.md guidelines.
 """
 
+import os
+import sys
+from pathlib import Path
+
+# Ensure project root is in sys.path so 'backend' is always resolvable
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -71,4 +80,4 @@ def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True, app_dir=str(PROJECT_ROOT))

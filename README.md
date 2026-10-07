@@ -1,4 +1,5 @@
-# CardioVision AI - 3D Cardiovascular Risk & Stenosis Visualization
+# IIT-Mandi-Hackathon - CardioVision AI
+### 3D Cardiovascular Risk & Coronary Artery Stenosis Visualization
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com)
@@ -27,16 +28,18 @@ All models were evaluated across 10 stratified folds on the full 303-patient dat
 
 | Target | Model Candidate | ROC-AUC | F1 Score | Accuracy | Precision | Recall |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **CAD (Cath)** | **Soft-Voting Ensemble** | **93.2%** | **91.1%** | **87.1%** | 89.4% | 93.1% |
-| CAD (Cath) | Extra Trees | 93.5% | 91.2% | 87.8% | 90.1% | 92.6% |
-| CAD (Cath) | CatBoost | 93.0% | 91.3% | 87.4% | 89.2% | 93.5% |
-| **LAD Stenosis** | **Extra Trees** | **85.3%** | **84.6%** | **81.2%** | 81.3% | 88.7% |
-| LAD Stenosis | **Soft-Voting Ensemble** | **84.8%** | **81.9%** | **77.9%** | 79.4% | 85.3% |
-| LAD Stenosis | CatBoost | 85.1% | 81.6% | 77.3% | 78.8% | 85.3% |
-| **LCX Stenosis** | **Soft-Voting Ensemble** | **74.2%** | **59.0%** | **70.3%** | 64.9% | 55.4% |
-| LCX Stenosis | XGBoost | 73.2% | 55.6% | 68.7% | 63.8% | 51.1% |
-| **RCA Stenosis** | **Extra Trees** | **71.7%** | **53.4%** | **63.0%** | 51.1% | 57.0% |
-| RCA Stenosis | **Soft-Voting Ensemble** | **71.3%** | **49.9%** | **66.3%** | 57.0% | 45.4% |
+| **CAD (Cath)** | **Soft-Voting Ensemble** | **94.7%** | **92.5%** | **89.1%** | 91.9% | 93.5% |
+| CAD (Cath) | CatBoost | 94.8% | 92.9% | 89.8% | 91.4% | 94.8% |
+| CAD (Cath) | Extra Trees | 94.5% | 91.9% | 88.8% | 94.0% | 90.2% |
+| **LAD Stenosis** | **Soft-Voting Ensemble** | **87.4%** | **83.8%** | **80.2%** | 80.5% | 87.6% |
+| LAD Stenosis | Random Forest | 86.5% | 83.9% | 80.6% | 81.3% | 87.0% |
+| LAD Stenosis | CatBoost | 86.6% | 82.7% | 78.9% | 79.5% | 86.4% |
+| **LCX Stenosis** | **Soft-Voting Ensemble** | **75.8%** | **60.3%** | **70.7%** | 65.2% | 57.3% |
+| LCX Stenosis | CatBoost | 77.0% | 58.2% | 70.0% | 65.9% | 53.0% |
+| LCX Stenosis | Random Forest | 76.2% | 62.6% | 71.0% | 63.8% | 62.4% |
+| **RCA Stenosis** | **Soft-Voting Ensemble** | **74.3%** | **54.2%** | **68.3%** | 61.8% | 49.8% |
+| RCA Stenosis | LightGBM | 74.8% | 56.1% | 70.9% | 68.2% | 49.8% |
+| RCA Stenosis | Random Forest | 72.4% | 56.1% | 68.6% | 61.2% | 53.4% |
 
 ---
 

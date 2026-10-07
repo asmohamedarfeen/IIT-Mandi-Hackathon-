@@ -1,32 +1,32 @@
 {
   "patient_id": "PT-SAMPLE-01",
   "overall_cad": {
-    "probability": 0.9865,
+    "probability": 0.9152,
     "cad_predicted": true,
     "risk_level": "High",
     "color_hex": "#EF4444"
   },
   "vessel_predictions": {
     "LAD": {
-      "probability": 0.882,
+      "probability": 0.7346,
       "stenosis_predicted": true,
       "risk_level": "High",
       "color_hex": "#EF4444",
       "recommendation": "Significant stenosis (>=50%) / Urgent clinical review"
     },
     "LCX": {
-      "probability": 0.3467,
+      "probability": 0.0578,
       "stenosis_predicted": false,
       "risk_level": "Low",
       "color_hex": "#10B981",
       "recommendation": "Normal / Routine monitoring"
     },
     "RCA": {
-      "probability": 0.5497,
+      "probability": 0.6786,
       "stenosis_predicted": true,
-      "risk_level": "Moderate",
-      "color_hex": "#F59E0B",
-      "recommendation": "Borderline / Non-invasive follow-up"
+      "risk_level": "High",
+      "color_hex": "#EF4444",
+      "recommendation": "Significant stenosis (>=50%) / Urgent clinical review"
     }
   },
   "key_physiological_measurements": {

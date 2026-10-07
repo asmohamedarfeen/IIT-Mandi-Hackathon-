@@ -2,572 +2,572 @@
   "targets": {
     "CAD": {
       "LogisticRegression": {
-        "accuracy": 0.8512,
-        "precision": 0.9252,
-        "recall": 0.8652,
-        "f1": 0.8908,
-        "roc_auc": 0.9202,
-        "specificity": 0.8181,
-        "mcc": 0.6689
+        "accuracy": 0.8546,
+        "precision": 0.9228,
+        "recall": 0.8742,
+        "f1": 0.8942,
+        "roc_auc": 0.9217,
+        "specificity": 0.8056,
+        "mcc": 0.6736
       },
       "RandomForest": {
-        "accuracy": 0.8612,
-        "precision": 0.8698,
-        "recall": 0.9483,
-        "f1": 0.9066,
-        "roc_auc": 0.925,
-        "specificity": 0.6431,
-        "mcc": 0.6512
+        "accuracy": 0.8743,
+        "precision": 0.906,
+        "recall": 0.9255,
+        "f1": 0.9139,
+        "roc_auc": 0.9408,
+        "specificity": 0.7444,
+        "mcc": 0.6893
       },
       "ExtraTrees": {
-        "accuracy": 0.8778,
-        "precision": 0.9297,
-        "recall": 0.8974,
-        "f1": 0.9121,
-        "roc_auc": 0.9354,
-        "specificity": 0.8278,
-        "mcc": 0.7158
+        "accuracy": 0.8875,
+        "precision": 0.9401,
+        "recall": 0.9019,
+        "f1": 0.919,
+        "roc_auc": 0.9451,
+        "specificity": 0.8514,
+        "mcc": 0.7403
       },
       "XGBoost": {
-        "accuracy": 0.8676,
-        "precision": 0.8837,
-        "recall": 0.9387,
-        "f1": 0.9095,
-        "roc_auc": 0.9207,
-        "specificity": 0.6889,
-        "mcc": 0.6707
+        "accuracy": 0.881,
+        "precision": 0.9132,
+        "recall": 0.9253,
+        "f1": 0.9177,
+        "roc_auc": 0.9355,
+        "specificity": 0.7681,
+        "mcc": 0.7078
       },
       "LightGBM": {
-        "accuracy": 0.8711,
-        "precision": 0.8891,
-        "recall": 0.9392,
-        "f1": 0.912,
-        "roc_auc": 0.9184,
-        "specificity": 0.7014,
-        "mcc": 0.6805
+        "accuracy": 0.8713,
+        "precision": 0.9058,
+        "recall": 0.9208,
+        "f1": 0.9115,
+        "roc_auc": 0.9358,
+        "specificity": 0.7472,
+        "mcc": 0.6819
       },
       "CatBoost": {
-        "accuracy": 0.8743,
-        "precision": 0.8909,
-        "recall": 0.9387,
-        "f1": 0.9132,
-        "roc_auc": 0.9304,
-        "specificity": 0.7125,
-        "mcc": 0.6925
+        "accuracy": 0.8975,
+        "precision": 0.9142,
+        "recall": 0.9485,
+        "f1": 0.9295,
+        "roc_auc": 0.9482,
+        "specificity": 0.7667,
+        "mcc": 0.748
       },
       "Ensemble (Soft-Voting)": {
-        "accuracy": 0.8709,
-        "precision": 0.8907,
-        "recall": 0.9342,
-        "f1": 0.911,
-        "roc_auc": 0.9318,
-        "specificity": 0.7111,
-        "mcc": 0.6814
+        "accuracy": 0.8909,
+        "precision": 0.9186,
+        "recall": 0.9346,
+        "f1": 0.9249,
+        "roc_auc": 0.9466,
+        "specificity": 0.7792,
+        "mcc": 0.7317
       }
     },
     "LAD": {
       "LogisticRegression": {
-        "accuracy": 0.7331,
-        "precision": 0.792,
-        "recall": 0.7392,
-        "f1": 0.7627,
-        "roc_auc": 0.8004,
-        "specificity": 0.7218,
-        "mcc": 0.461
+        "accuracy": 0.7359,
+        "precision": 0.8072,
+        "recall": 0.7281,
+        "f1": 0.7617,
+        "roc_auc": 0.8071,
+        "specificity": 0.7436,
+        "mcc": 0.4726
       },
       "RandomForest": {
-        "accuracy": 0.7826,
-        "precision": 0.7752,
-        "recall": 0.8873,
-        "f1": 0.8262,
-        "roc_auc": 0.8488,
-        "specificity": 0.6346,
-        "mcc": 0.5516
+        "accuracy": 0.8058,
+        "precision": 0.8134,
+        "recall": 0.8703,
+        "f1": 0.8392,
+        "roc_auc": 0.8646,
+        "specificity": 0.7141,
+        "mcc": 0.5998
       },
       "ExtraTrees": {
-        "accuracy": 0.8121,
-        "precision": 0.8122,
-        "recall": 0.8876,
-        "f1": 0.8462,
-        "roc_auc": 0.8526,
-        "specificity": 0.7039,
-        "mcc": 0.6143
+        "accuracy": 0.7888,
+        "precision": 0.8032,
+        "recall": 0.8533,
+        "f1": 0.8248,
+        "roc_auc": 0.865,
+        "specificity": 0.6962,
+        "mcc": 0.5656
       },
       "XGBoost": {
-        "accuracy": 0.7825,
-        "precision": 0.7943,
-        "recall": 0.8532,
-        "f1": 0.8212,
-        "roc_auc": 0.843,
-        "specificity": 0.6814,
-        "mcc": 0.5486
+        "accuracy": 0.8055,
+        "precision": 0.8027,
+        "recall": 0.8869,
+        "f1": 0.8423,
+        "roc_auc": 0.8596,
+        "specificity": 0.6898,
+        "mcc": 0.5956
       },
       "LightGBM": {
-        "accuracy": 0.7661,
-        "precision": 0.7922,
-        "recall": 0.819,
-        "f1": 0.8026,
-        "roc_auc": 0.8232,
+        "accuracy": 0.7989,
+        "precision": 0.8017,
+        "recall": 0.8758,
+        "f1": 0.8364,
+        "roc_auc": 0.8582,
         "specificity": 0.6904,
-        "mcc": 0.5191
+        "mcc": 0.5821
       },
       "CatBoost": {
-        "accuracy": 0.7727,
-        "precision": 0.7758,
+        "accuracy": 0.7888,
+        "precision": 0.7954,
         "recall": 0.8644,
-        "f1": 0.8158,
-        "roc_auc": 0.8513,
-        "specificity": 0.643,
-        "mcc": 0.5302
+        "f1": 0.8274,
+        "roc_auc": 0.8663,
+        "specificity": 0.6814,
+        "mcc": 0.5615
       },
       "Ensemble (Soft-Voting)": {
-        "accuracy": 0.7792,
-        "precision": 0.7932,
-        "recall": 0.8526,
-        "f1": 0.8188,
-        "roc_auc": 0.8482,
-        "specificity": 0.6737,
-        "mcc": 0.544
+        "accuracy": 0.8023,
+        "precision": 0.8053,
+        "recall": 0.8761,
+        "f1": 0.8379,
+        "roc_auc": 0.8739,
+        "specificity": 0.6974,
+        "mcc": 0.5911
       }
     },
     "LCX": {
       "LogisticRegression": {
-        "accuracy": 0.6374,
-        "precision": 0.543,
-        "recall": 0.5985,
-        "f1": 0.5673,
-        "roc_auc": 0.6517,
-        "specificity": 0.6635,
-        "mcc": 0.2598
+        "accuracy": 0.644,
+        "precision": 0.5499,
+        "recall": 0.5886,
+        "f1": 0.5663,
+        "roc_auc": 0.6683,
+        "specificity": 0.6792,
+        "mcc": 0.2675
       },
       "RandomForest": {
-        "accuracy": 0.6802,
-        "precision": 0.6172,
-        "recall": 0.5061,
-        "f1": 0.5498,
-        "roc_auc": 0.7143,
-        "specificity": 0.7942,
-        "mcc": 0.3153
+        "accuracy": 0.7104,
+        "precision": 0.6379,
+        "recall": 0.6242,
+        "f1": 0.6256,
+        "roc_auc": 0.7619,
+        "specificity": 0.7672,
+        "mcc": 0.395
       },
       "ExtraTrees": {
-        "accuracy": 0.6476,
-        "precision": 0.5581,
-        "recall": 0.6394,
-        "f1": 0.5913,
-        "roc_auc": 0.6989,
-        "specificity": 0.6529,
-        "mcc": 0.2914
+        "accuracy": 0.6712,
+        "precision": 0.5698,
+        "recall": 0.7061,
+        "f1": 0.6256,
+        "roc_auc": 0.7327,
+        "specificity": 0.6477,
+        "mcc": 0.3513
       },
       "XGBoost": {
-        "accuracy": 0.6868,
-        "precision": 0.6396,
-        "recall": 0.5046,
-        "f1": 0.5565,
-        "roc_auc": 0.732,
-        "specificity": 0.8044,
-        "mcc": 0.3309
+        "accuracy": 0.7034,
+        "precision": 0.6519,
+        "recall": 0.5477,
+        "f1": 0.59,
+        "roc_auc": 0.747,
+        "specificity": 0.805,
+        "mcc": 0.3687
       },
       "LightGBM": {
-        "accuracy": 0.697,
-        "precision": 0.6409,
-        "recall": 0.5629,
-        "f1": 0.5966,
-        "roc_auc": 0.7307,
-        "specificity": 0.7833,
-        "mcc": 0.3595
+        "accuracy": 0.7002,
+        "precision": 0.6369,
+        "recall": 0.5644,
+        "f1": 0.5928,
+        "roc_auc": 0.7398,
+        "specificity": 0.7889,
+        "mcc": 0.364
       },
       "CatBoost": {
-        "accuracy": 0.6574,
-        "precision": 0.5951,
-        "recall": 0.4538,
-        "f1": 0.5099,
-        "roc_auc": 0.7076,
-        "specificity": 0.7886,
-        "mcc": 0.2626
+        "accuracy": 0.7001,
+        "precision": 0.6589,
+        "recall": 0.5295,
+        "f1": 0.5817,
+        "roc_auc": 0.7703,
+        "specificity": 0.8102,
+        "mcc": 0.3617
       },
       "Ensemble (Soft-Voting)": {
-        "accuracy": 0.7034,
-        "precision": 0.6569,
-        "recall": 0.5462,
-        "f1": 0.5898,
-        "roc_auc": 0.7421,
-        "specificity": 0.8053,
-        "mcc": 0.3703
+        "accuracy": 0.7069,
+        "precision": 0.6515,
+        "recall": 0.5727,
+        "f1": 0.6031,
+        "roc_auc": 0.7583,
+        "specificity": 0.7944,
+        "mcc": 0.3803
       }
     },
     "RCA": {
       "LogisticRegression": {
-        "accuracy": 0.6432,
-        "precision": 0.5368,
-        "recall": 0.6129,
-        "f1": 0.5644,
-        "roc_auc": 0.6982,
-        "specificity": 0.6623,
-        "mcc": 0.2757
+        "accuracy": 0.6369,
+        "precision": 0.5314,
+        "recall": 0.5689,
+        "f1": 0.5376,
+        "roc_auc": 0.6872,
+        "specificity": 0.6778,
+        "mcc": 0.2514
       },
       "RandomForest": {
-        "accuracy": 0.6501,
-        "precision": 0.6,
-        "recall": 0.3674,
-        "f1": 0.4431,
-        "roc_auc": 0.6979,
-        "specificity": 0.821,
-        "mcc": 0.2282
+        "accuracy": 0.6862,
+        "precision": 0.6125,
+        "recall": 0.5341,
+        "f1": 0.5612,
+        "roc_auc": 0.7236,
+        "specificity": 0.7786,
+        "mcc": 0.3297
       },
       "ExtraTrees": {
-        "accuracy": 0.6299,
-        "precision": 0.5098,
-        "recall": 0.5674,
-        "f1": 0.534,
-        "roc_auc": 0.7173,
-        "specificity": 0.6669,
-        "mcc": 0.2326
+        "accuracy": 0.6362,
+        "precision": 0.5258,
+        "recall": 0.6227,
+        "f1": 0.5627,
+        "roc_auc": 0.7233,
+        "specificity": 0.6462,
+        "mcc": 0.2678
       },
       "XGBoost": {
-        "accuracy": 0.6729,
-        "precision": 0.6143,
-        "recall": 0.4545,
-        "f1": 0.5115,
-        "roc_auc": 0.7018,
+        "accuracy": 0.6796,
+        "precision": 0.6188,
+        "recall": 0.472,
+        "f1": 0.5271,
+        "roc_auc": 0.7317,
         "specificity": 0.8053,
-        "mcc": 0.2888
+        "mcc": 0.3039
       },
       "LightGBM": {
-        "accuracy": 0.6562,
-        "precision": 0.5983,
-        "recall": 0.4379,
-        "f1": 0.489,
-        "roc_auc": 0.7032,
-        "specificity": 0.7895,
-        "mcc": 0.2576
+        "accuracy": 0.7094,
+        "precision": 0.6815,
+        "recall": 0.4985,
+        "f1": 0.5609,
+        "roc_auc": 0.748,
+        "specificity": 0.8368,
+        "mcc": 0.3719
       },
       "CatBoost": {
-        "accuracy": 0.6961,
-        "precision": 0.6812,
-        "recall": 0.4644,
-        "f1": 0.528,
-        "roc_auc": 0.7083,
-        "specificity": 0.8368,
-        "mcc": 0.3443
+        "accuracy": 0.6597,
+        "precision": 0.5813,
+        "recall": 0.4371,
+        "f1": 0.4843,
+        "roc_auc": 0.7389,
+        "specificity": 0.7944,
+        "mcc": 0.2551
       },
       "Ensemble (Soft-Voting)": {
-        "accuracy": 0.6628,
-        "precision": 0.6185,
-        "recall": 0.4462,
-        "f1": 0.4988,
-        "roc_auc": 0.7126,
+        "accuracy": 0.6829,
+        "precision": 0.618,
+        "recall": 0.4985,
+        "f1": 0.5422,
+        "roc_auc": 0.7431,
         "specificity": 0.7947,
-        "mcc": 0.276
+        "mcc": 0.3159
       }
     }
   },
   "global_importances": {
     "CAD": [
       {
+        "feature": "Pretest_PTP_Score",
+        "importance": 1.0308,
+        "mean_val": 5.62
+      },
+      {
         "feature": "Typical Chest Pain",
-        "importance": 1.3427,
+        "importance": 0.3267,
         "mean_val": 0.54
       },
       {
         "feature": "EF-TTE",
-        "importance": 0.5277,
+        "importance": 0.254,
         "mean_val": 47.23
       },
       {
+        "feature": "Age_EF_Ratio",
+        "importance": 0.1842,
+        "mean_val": 1.33
+      },
+      {
         "feature": "Region RWMA",
-        "importance": 0.4133,
+        "importance": 0.1744,
         "mean_val": 0.62
       },
       {
-        "feature": "Age",
-        "importance": 0.3946,
-        "mean_val": 58.9
-      },
-      {
         "feature": "ECG_Abnormality_Score",
-        "importance": 0.3706,
+        "importance": 0.1518,
         "mean_val": 0.63
       },
       {
-        "feature": "Metabolic_Risk_Score",
-        "importance": 0.3318,
-        "mean_val": 2.21
-      },
-      {
-        "feature": "Lifestyle_Risk_Index",
-        "importance": 0.2895,
-        "mean_val": 0.97
-      },
-      {
-        "feature": "ESR",
-        "importance": 0.1326,
-        "mean_val": 19.46
-      },
-      {
         "feature": "FBS",
-        "importance": 0.1262,
+        "importance": 0.1504,
         "mean_val": 119.18
       },
       {
-        "feature": "BMI",
-        "importance": 0.1099,
-        "mean_val": 27.25
+        "feature": "Metabolic_Risk_Score",
+        "importance": 0.1127,
+        "mean_val": 1.71
       },
       {
-        "feature": "TG",
-        "importance": 0.1045,
-        "mean_val": 150.34
+        "feature": "ESR",
+        "importance": 0.1015,
+        "mean_val": 19.46
       },
       {
-        "feature": "CR",
-        "importance": 0.0916,
-        "mean_val": 1.06
+        "feature": "TyG_Index",
+        "importance": 0.09,
+        "mean_val": 8.89
       },
       {
-        "feature": "VHD",
-        "importance": 0.0897,
-        "mean_val": 0.78
+        "feature": "Ischemic_ECG",
+        "importance": 0.0869,
+        "mean_val": 0.44
       },
       {
-        "feature": "K",
-        "importance": 0.0829,
-        "mean_val": 4.23
+        "feature": "Age",
+        "importance": 0.0862,
+        "mean_val": 58.9
       },
       {
-        "feature": "BP",
-        "importance": 0.0782,
-        "mean_val": 129.55
+        "feature": "Atypical",
+        "importance": 0.0745,
+        "mean_val": 0.31
+      },
+      {
+        "feature": "Atherogenic_Index_Plasma",
+        "importance": 0.0731,
+        "mean_val": 0.53
+      },
+      {
+        "feature": "Has_RWMA",
+        "importance": 0.0694,
+        "mean_val": 0.28
       }
     ],
     "LAD": [
       {
-        "feature": "Typical Chest Pain",
-        "importance": 0.8642,
-        "mean_val": 0.54
+        "feature": "Pretest_PTP_Score",
+        "importance": 0.7209,
+        "mean_val": 5.62
+      },
+      {
+        "feature": "Age_EF_Ratio",
+        "importance": 0.3022,
+        "mean_val": 1.33
       },
       {
         "feature": "Region RWMA",
-        "importance": 0.507,
+        "importance": 0.2662,
         "mean_val": 0.62
       },
       {
         "feature": "EF-TTE",
-        "importance": 0.487,
+        "importance": 0.2117,
         "mean_val": 47.23
       },
       {
-        "feature": "Age",
-        "importance": 0.2945,
-        "mean_val": 58.9
-      },
-      {
-        "feature": "LDL_HDL_Ratio",
-        "importance": 0.2059,
-        "mean_val": 2.71
+        "feature": "Typical Chest Pain",
+        "importance": 0.2116,
+        "mean_val": 0.54
       },
       {
         "feature": "ECG_Abnormality_Score",
-        "importance": 0.1938,
+        "importance": 0.1491,
         "mean_val": 0.63
       },
       {
-        "feature": "Lifestyle_Risk_Index",
-        "importance": 0.1718,
-        "mean_val": 0.97
-      },
-      {
-        "feature": "Lymph",
-        "importance": 0.1471,
-        "mean_val": 32.4
-      },
-      {
-        "feature": "Na",
-        "importance": 0.1389,
-        "mean_val": 141.0
+        "feature": "Castelli_Risk_Index_II",
+        "importance": 0.1148,
+        "mean_val": 2.71
       },
       {
         "feature": "ESR",
-        "importance": 0.1336,
+        "importance": 0.0867,
         "mean_val": 19.46
       },
       {
+        "feature": "Has_RWMA",
+        "importance": 0.0843,
+        "mean_val": 0.28
+      },
+      {
+        "feature": "SII",
+        "importance": 0.0836,
+        "mean_val": 498.59
+      },
+      {
+        "feature": "HB",
+        "importance": 0.0757,
+        "mean_val": 13.15
+      },
+      {
         "feature": "WBC",
-        "importance": 0.1324,
+        "importance": 0.0751,
         "mean_val": 7562.05
       },
       {
-        "feature": "BMI",
-        "importance": 0.1022,
-        "mean_val": 27.25
+        "feature": "Castelli_Risk_Index_I",
+        "importance": 0.0583,
+        "mean_val": 4.5
       },
       {
-        "feature": "Metabolic_Risk_Score",
-        "importance": 0.0935,
-        "mean_val": 2.21
+        "feature": "Ischemic_ECG",
+        "importance": 0.0555,
+        "mean_val": 0.44
       },
       {
-        "feature": "FBS",
-        "importance": 0.0876,
-        "mean_val": 119.18
-      },
-      {
-        "feature": "CR",
-        "importance": 0.0843,
-        "mean_val": 1.06
+        "feature": "TyG_Index",
+        "importance": 0.0521,
+        "mean_val": 8.89
       }
     ],
     "LCX": [
       {
-        "feature": "Age",
-        "importance": 0.5215,
-        "mean_val": 58.9
+        "feature": "Pretest_PTP_Score",
+        "importance": 0.5083,
+        "mean_val": 5.62
+      },
+      {
+        "feature": "Age_EF_Ratio",
+        "importance": 0.3097,
+        "mean_val": 1.33
+      },
+      {
+        "feature": "TyG_Index",
+        "importance": 0.1976,
+        "mean_val": 8.89
+      },
+      {
+        "feature": "PLT",
+        "importance": 0.1699,
+        "mean_val": 221.49
+      },
+      {
+        "feature": "Na",
+        "importance": 0.1434,
+        "mean_val": 141.0
       },
       {
         "feature": "Typical Chest Pain",
-        "importance": 0.5076,
+        "importance": 0.129,
         "mean_val": 0.54
       },
       {
         "feature": "CR",
-        "importance": 0.2831,
+        "importance": 0.1132,
         "mean_val": 1.06
       },
       {
-        "feature": "PLT",
-        "importance": 0.2486,
-        "mean_val": 221.49
+        "feature": "Age",
+        "importance": 0.0996,
+        "mean_val": 58.9
       },
       {
-        "feature": "TG",
-        "importance": 0.2242,
-        "mean_val": 150.34
+        "feature": "K",
+        "importance": 0.0914,
+        "mean_val": 4.23
       },
       {
         "feature": "Length",
-        "importance": 0.2049,
+        "importance": 0.0796,
         "mean_val": 164.72
       },
       {
-        "feature": "HDL",
-        "importance": 0.1997,
-        "mean_val": 40.23
-      },
-      {
-        "feature": "Na",
-        "importance": 0.1885,
-        "mean_val": 141.0
-      },
-      {
-        "feature": "FBS",
-        "importance": 0.1488,
-        "mean_val": 119.18
+        "feature": "ESR",
+        "importance": 0.0706,
+        "mean_val": 19.46
       },
       {
         "feature": "LDL",
-        "importance": 0.1215,
+        "importance": 0.0604,
         "mean_val": 104.64
       },
       {
-        "feature": "BMI",
-        "importance": 0.117,
-        "mean_val": 27.25
+        "feature": "HDL",
+        "importance": 0.058,
+        "mean_val": 40.23
       },
       {
-        "feature": "Weight",
-        "importance": 0.1168,
-        "mean_val": 73.83
+        "feature": "FBS",
+        "importance": 0.0535,
+        "mean_val": 119.18
       },
       {
-        "feature": "BUN",
-        "importance": 0.0857,
-        "mean_val": 17.5
-      },
-      {
-        "feature": "Lymph",
-        "importance": 0.0846,
-        "mean_val": 32.4
-      },
-      {
-        "feature": "WBC",
-        "importance": 0.0843,
-        "mean_val": 7562.05
+        "feature": "Log_CR",
+        "importance": 0.053,
+        "mean_val": 0.71
       }
     ],
     "RCA": [
       {
-        "feature": "Typical Chest Pain",
-        "importance": 0.41,
-        "mean_val": 0.54
-      },
-      {
-        "feature": "DM",
-        "importance": 0.3573,
-        "mean_val": 0.3
+        "feature": "Pretest_PTP_Score",
+        "importance": 0.5038,
+        "mean_val": 5.62
       },
       {
         "feature": "ESR",
-        "importance": 0.3277,
+        "importance": 0.2376,
         "mean_val": 19.46
       },
       {
-        "feature": "Age",
-        "importance": 0.2687,
-        "mean_val": 58.9
+        "feature": "Age_EF_Ratio",
+        "importance": 0.181,
+        "mean_val": 1.33
       },
       {
-        "feature": "Neut",
-        "importance": 0.2573,
-        "mean_val": 60.15
+        "feature": "SII",
+        "importance": 0.1426,
+        "mean_val": 498.59
       },
       {
-        "feature": "Lymph",
-        "importance": 0.2207,
-        "mean_val": 32.4
+        "feature": "DM",
+        "importance": 0.1378,
+        "mean_val": 0.3
       },
       {
-        "feature": "Weight",
-        "importance": 0.168,
-        "mean_val": 73.83
+        "feature": "NLR",
+        "importance": 0.1359,
+        "mean_val": 2.24
       },
       {
-        "feature": "WBC",
-        "importance": 0.1653,
-        "mean_val": 7562.05
-      },
-      {
-        "feature": "PLT",
-        "importance": 0.1602,
-        "mean_val": 221.49
+        "feature": "BUN_CR_Ratio",
+        "importance": 0.1288,
+        "mean_val": 16.85
       },
       {
         "feature": "Metabolic_Risk_Score",
-        "importance": 0.1426,
-        "mean_val": 2.21
+        "importance": 0.0979,
+        "mean_val": 1.71
       },
       {
-        "feature": "Total_Cholesterol_Ratio",
-        "importance": 0.1144,
-        "mean_val": 4.5
+        "feature": "Non_HDL_Cholesterol",
+        "importance": 0.0796,
+        "mean_val": 134.71
+      },
+      {
+        "feature": "Log_ESR",
+        "importance": 0.0749,
+        "mean_val": 2.73
+      },
+      {
+        "feature": "Weight",
+        "importance": 0.0629,
+        "mean_val": 73.83
+      },
+      {
+        "feature": "Typical Chest Pain",
+        "importance": 0.0569,
+        "mean_val": 0.54
+      },
+      {
+        "feature": "TyG_Index",
+        "importance": 0.0551,
+        "mean_val": 8.89
+      },
+      {
+        "feature": "Age",
+        "importance": 0.0516,
+        "mean_val": 58.9
       },
       {
         "feature": "BMI",
-        "importance": 0.1141,
+        "importance": 0.0475,
         "mean_val": 27.25
-      },
-      {
-        "feature": "TG",
-        "importance": 0.1068,
-        "mean_val": 150.34
-      },
-      {
-        "feature": "Lifestyle_Risk_Index",
-        "importance": 0.1009,
-        "mean_val": 0.97
-      },
-      {
-        "feature": "FBS",
-        "importance": 0.0918,
-        "mean_val": 119.18
       }
     ]
   },
@@ -610,7 +610,6 @@
         "Function Class": 0.0,
         "Atypical": 0.0,
         "Nonanginal": 0.0,
-        "Exertional CP": 0.0,
         "LowTH Ang": 0.0,
         "Q Wave": 0.0,
         "St Elevation": 0.0,
@@ -638,13 +637,34 @@
         "VHD": 2.0,
         "Pulse_Pressure": 42.0,
         "Mean_Arterial_Pressure": 92.0,
-        "LDL_HDL_Ratio": 2.4444444444444446,
-        "Total_Cholesterol_Ratio": 4.022222222222222,
+        "Shock_Index": 0.5833333333333334,
+        "Castelli_Risk_Index_I": 4.022222222222222,
+        "Castelli_Risk_Index_II": 2.4444444444444446,
+        "Atherogenic_Index_Plasma": 0.4607308385314931,
+        "TyG_Index": 9.558882332684727,
+        "Non_HDL_Cholesterol": 136.0,
+        "NLR": 2.3333333333333335,
+        "PLR": 9.333333333333334,
+        "SII": 653.3333333333334,
+        "BUN_CR_Ratio": 10.0,
+        "Age_EF_Ratio": 1.9666666666666666,
         "BMI_Category_Overweight": 1.0,
         "BMI_Category_Obese": 0.0,
         "ECG_Abnormality_Score": 0.0,
+        "Ischemic_ECG": 0.0,
+        "Has_RWMA": 0.0,
+        "RWMA_LAD_Territory": 0.0,
+        "RWMA_RCA_Territory": 0.0,
+        "RWMA_LCX_Territory": 0.0,
+        "Pretest_PTP_Score": 7.0,
         "Metabolic_Risk_Score": 2.0,
-        "Lifestyle_Risk_Index": 0.0
+        "Lifestyle_Risk_Index": 0.0,
+        "Log_TG": 4.875197323201151,
+        "Log_CR": 0.7419373447293773,
+        "Log_ESR": 2.995732273553991,
+        "Log_WBC": 9.401043372798053,
+        "Log_FBS": 5.389071729816501,
+        "Log_BUN": 2.4849066497880004
       }
     },
     {
@@ -685,7 +705,6 @@
         "Function Class": 0.0,
         "Atypical": 0.0,
         "Nonanginal": 0.0,
-        "Exertional CP": 0.0,
         "LowTH Ang": 0.0,
         "Q Wave": 0.0,
         "St Elevation": 0.0,
@@ -713,13 +732,34 @@
         "VHD": 0.0,
         "Pulse_Pressure": 38.5,
         "Mean_Arterial_Pressure": 84.33333333333333,
-        "LDL_HDL_Ratio": 5.166666666666667,
-        "Total_Cholesterol_Ratio": 7.833333333333333,
+        "Shock_Index": 0.7272727272727273,
+        "Castelli_Risk_Index_I": 7.833333333333333,
+        "Castelli_Risk_Index_II": 5.166666666666667,
+        "Atherogenic_Index_Plasma": 0.9208187539523752,
+        "TyG_Index": 9.328123407632566,
+        "Non_HDL_Cholesterol": 205.0,
+        "NLR": 1.3333333333333333,
+        "PLR": 6.6923076923076925,
+        "SII": 348.0,
+        "BUN_CR_Ratio": 11.428571428571429,
+        "Age_EF_Ratio": 1.06,
         "BMI_Category_Overweight": 1.0,
         "BMI_Category_Obese": 0.0,
         "ECG_Abnormality_Score": 2.0,
-        "Metabolic_Risk_Score": 3.0,
-        "Lifestyle_Risk_Index": 2.0
+        "Ischemic_ECG": 1.0,
+        "Has_RWMA": 0.0,
+        "RWMA_LAD_Territory": 0.0,
+        "RWMA_RCA_Territory": 0.0,
+        "RWMA_LCX_Territory": 0.0,
+        "Pretest_PTP_Score": 5.0,
+        "Metabolic_Risk_Score": 2.0,
+        "Lifestyle_Risk_Index": 2.0,
+        "Log_TG": 5.5254529391317835,
+        "Log_CR": 0.5306282510621704,
+        "Log_ESR": 2.0794415416798357,
+        "Log_WBC": 8.648396877031582,
+        "Log_FBS": 4.51085950651685,
+        "Log_BUN": 2.1972245773362196
       }
     },
     {
@@ -760,7 +800,6 @@
         "Function Class": 0.0,
         "Atypical": 0.0,
         "Nonanginal": 0.0,
-        "Exertional CP": 0.0,
         "LowTH Ang": 0.0,
         "Q Wave": 0.0,
         "St Elevation": 0.0,
@@ -788,13 +827,34 @@
         "VHD": 0.0,
         "Pulse_Pressure": 49.0,
         "Mean_Arterial_Pressure": 107.33333333333333,
-        "LDL_HDL_Ratio": 3.361111111111111,
-        "Total_Cholesterol_Ratio": 6.077777777777778,
+        "Shock_Index": 0.5714285714285714,
+        "Castelli_Risk_Index_I": 6.077777777777778,
+        "Castelli_Risk_Index_II": 3.361111111111111,
+        "Atherogenic_Index_Plasma": 0.9336559786575475,
+        "TyG_Index": 9.422220731011683,
+        "Non_HDL_Cholesterol": 182.8,
+        "NLR": 1.4473684210526316,
+        "PLR": 4.342105263157895,
+        "SII": 238.81578947368422,
+        "BUN_CR_Ratio": 30.0,
+        "Age_EF_Ratio": 1.675,
         "BMI_Category_Overweight": 1.0,
         "BMI_Category_Obese": 0.0,
         "ECG_Abnormality_Score": 2.0,
-        "Metabolic_Risk_Score": 3.0,
-        "Lifestyle_Risk_Index": 1.0
+        "Ischemic_ECG": 1.0,
+        "Has_RWMA": 1.0,
+        "RWMA_LAD_Territory": 1.0,
+        "RWMA_RCA_Territory": 1.0,
+        "RWMA_LCX_Territory": 1.0,
+        "Pretest_PTP_Score": 6.0,
+        "Metabolic_Risk_Score": 2.0,
+        "Lifestyle_Risk_Index": 1.0,
+        "Log_TG": 5.736572297479192,
+        "Log_CR": 0.6931471805599453,
+        "Log_ESR": 3.295836866004329,
+        "Log_WBC": 8.94910546953925,
+        "Log_FBS": 4.394449154672439,
+        "Log_BUN": 3.4339872044851463
       }
     }
   ]

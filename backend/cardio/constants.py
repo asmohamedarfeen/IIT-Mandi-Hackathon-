@@ -49,17 +49,49 @@ RAW_MULTICLASS_FEATURES: Final[List[str]] = [
     "Sex", "BBB", "VHD"
 ]
 
+# Zero-variance columns to prune during preprocessing
+ZERO_VARIANCE_COLUMNS: Final[List[str]] = ["Exertional CP"]
+
+# Optimal classification decision thresholds tuned per target via 10-fold CV
+OPTIMAL_VESSEL_THRESHOLDS: Final[Dict[str, float]] = {
+    "CAD": 0.46,
+    "LAD": 0.38,
+    "LCX": 0.36,
+    "RCA": 0.34,
+}
+
 # Engineered clinical feature names
 ENGINEERED_FEATURES: Final[List[str]] = [
     "Pulse_Pressure",
     "Mean_Arterial_Pressure",
-    "LDL_HDL_Ratio",
-    "Total_Cholesterol_Ratio",
+    "Shock_Index",
+    "Castelli_Risk_Index_I",
+    "Castelli_Risk_Index_II",
+    "Atherogenic_Index_Plasma",
+    "TyG_Index",
+    "Non_HDL_Cholesterol",
+    "NLR",
+    "PLR",
+    "SII",
+    "BUN_CR_Ratio",
+    "Age_EF_Ratio",
     "ECG_Abnormality_Score",
+    "Ischemic_ECG",
+    "Has_RWMA",
+    "RWMA_LAD_Territory",
+    "RWMA_LCX_Territory",
+    "RWMA_RCA_Territory",
+    "Pretest_PTP_Score",
     "Metabolic_Risk_Score",
     "Lifestyle_Risk_Index",
     "BMI_Category_Overweight",
-    "BMI_Category_Obese"
+    "BMI_Category_Obese",
+    "Log_TG",
+    "Log_CR",
+    "Log_ESR",
+    "Log_WBC",
+    "Log_FBS",
+    "Log_BUN",
 ]
 
 # Clinical safety disclaimer mandated by medical ML guidelines

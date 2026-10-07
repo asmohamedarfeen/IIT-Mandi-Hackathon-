@@ -100,13 +100,34 @@ FEATURE_DISPLAY_NAMES = {
     "Poor R Progression": "Poor R-Wave Progression",
     "Pulse_Pressure": "Calculated Pulse Pressure",
     "Mean_Arterial_Pressure": "Mean Arterial Pressure (MAP)",
-    "LDL_HDL_Ratio": "LDL / HDL Atherogenic Ratio",
-    "Total_Cholesterol_Ratio": "Total Cholesterol / HDL Ratio",
+    "Shock_Index": "Shock Index (PR/SBP)",
+    "Castelli_Risk_Index_I": "Castelli Risk Index I (TC/HDL)",
+    "Castelli_Risk_Index_II": "Castelli Risk Index II (LDL/HDL)",
+    "Atherogenic_Index_Plasma": "Atherogenic Index of Plasma (AIP)",
+    "TyG_Index": "Triglyceride-Glucose Index (TyG)",
+    "Non_HDL_Cholesterol": "Non-HDL Cholesterol (mg/dL)",
+    "NLR": "Neutrophil-to-Lymphocyte Ratio (NLR)",
+    "PLR": "Platelet-to-Lymphocyte Ratio (PLR)",
+    "SII": "Systemic Immune-Inflammation Index (SII)",
+    "BUN_CR_Ratio": "BUN / Creatinine Ratio",
+    "Age_EF_Ratio": "Age / Ejection Fraction Ratio",
     "ECG_Abnormality_Score": "ECG Composite Abnormality Score",
+    "Ischemic_ECG": "Ischemic ECG Findings",
+    "Has_RWMA": "Echocardiographic RWMA Present",
+    "RWMA_LAD_Territory": "RWMA: Anterior/Apical (LAD Territory)",
+    "RWMA_LCX_Territory": "RWMA: Lateral/Postero-lateral (LCX Territory)",
+    "RWMA_RCA_Territory": "RWMA: Inferior/Posterior (RCA Territory)",
+    "Pretest_PTP_Score": "Pretest CAD Probability (Duke/DF Score)",
     "Metabolic_Risk_Score": "Metabolic Syndrome Score",
     "Lifestyle_Risk_Index": "Lifestyle Risk Index",
     "BMI_Category_Overweight": "BMI Category: Overweight",
     "BMI_Category_Obese": "BMI Category: Obese",
+    "Log_TG": "Log-Transformed Triglycerides",
+    "Log_CR": "Log-Transformed Creatinine",
+    "Log_ESR": "Log-Transformed ESR",
+    "Log_WBC": "Log-Transformed WBC",
+    "Log_FBS": "Log-Transformed Fasting Glucose",
+    "Log_BUN": "Log-Transformed BUN",
 }
 
 
@@ -133,11 +154,16 @@ class PredictionService:
 
         # Initialize TreeSHAP explainers for fast patient-level explanation
         for target in TARGET_NAMES:
-            calibrated = self.bundle["calibrated_models"][target]
-            # Retrieve base estimator from calibrated classifier
-            voting_clf = calibrated.calibrated_classifiers_[0].estimator
-            xgb_est = [est for name, est in voting_clf.named_estimators_.items() if name == "xgboost"][0]
-            self.tree_explainers[target] = shap.TreeExplainer(xgb_est)
+            if "tree_surrogates" in self.bundle and target in self.bundle["tree_surrogates"]:
+                surrogate = self.bundle["tree_surrogates"][target]
+                self.tree_explainers[target] = shap.TreeExplainer(surrogate)
+            else:
+                calibrated = self.bundle["calibrated_models"][target]
+                # Retrieve base estimator from calibrated classifier
+                cal_clf = calibrated.calibrated_classifiers_[0]
+                voting_clf = getattr(cal_clf, "estimator", getattr(cal_clf, "base_estimator", None))
+                xgb_est = [est for name, est in voting_clf.named_estimators_.items() if name == "xgboost"][0]
+                self.tree_explainers[target] = shap.TreeExplainer(xgb_est)
 
         # Load benchmark summary if present
         if os.path.exists(settings.BENCHMARK_PATH):

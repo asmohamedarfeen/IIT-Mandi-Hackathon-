@@ -83,39 +83,45 @@ def calculate_metrics(y_true: np.ndarray, y_pred: np.ndarray, y_proba: np.ndarra
 
 
 def get_candidate_models(random_state: int = 42) -> Dict[str, Any]:
-    """Return candidates for benchmarking and ensemble voting."""
+    """Return candidates for benchmarking and ensemble voting with regularized hyperparameters."""
     return {
         "LogisticRegression": LogisticRegression(
             max_iter=1000, class_weight="balanced", random_state=random_state
         ),
         "RandomForest": RandomForestClassifier(
-            n_estimators=150, max_depth=7, class_weight="balanced", random_state=random_state
+            n_estimators=180, max_depth=5, min_samples_leaf=2, class_weight="balanced", random_state=random_state
         ),
         "ExtraTrees": ExtraTreesClassifier(
-            n_estimators=150, max_depth=7, class_weight="balanced", random_state=random_state
+            n_estimators=180, max_depth=5, min_samples_leaf=2, class_weight="balanced", random_state=random_state
         ),
         "XGBoost": XGBClassifier(
-            n_estimators=120,
-            max_depth=4,
-            learning_rate=0.05,
+            n_estimators=140,
+            max_depth=3,
+            learning_rate=0.03,
             subsample=0.8,
-            colsample_bytree=0.8,
+            colsample_bytree=0.7,
+            reg_alpha=0.5,
+            reg_lambda=2.0,
             eval_metric="logloss",
             random_state=random_state,
         ),
         "LightGBM": LGBMClassifier(
-            n_estimators=120,
-            max_depth=4,
-            learning_rate=0.05,
+            n_estimators=140,
+            max_depth=3,
+            num_leaves=14,
+            learning_rate=0.03,
             subsample=0.8,
-            colsample_bytree=0.8,
+            colsample_bytree=0.7,
+            reg_alpha=0.5,
+            reg_lambda=2.0,
             random_state=random_state,
             verbose=-1,
         ),
         "CatBoost": CatBoostClassifier(
-            iterations=150,
-            depth=5,
-            learning_rate=0.05,
+            iterations=200,
+            depth=4,
+            learning_rate=0.03,
+            l2_leaf_reg=4.0,
             verbose=0,
             random_seed=random_state,
         ),
@@ -163,11 +169,11 @@ def run_cross_validation_benchmark(
 
     # Build and benchmark Production Soft-Voting Ensemble
     ensemble_estimators = [
-        ("catboost", CatBoostClassifier(iterations=180, depth=5, learning_rate=0.04, verbose=0, random_seed=42)),
-        ("xgboost", XGBClassifier(n_estimators=140, max_depth=4, learning_rate=0.04, eval_metric="logloss", random_state=42)),
-        ("lightgbm", LGBMClassifier(n_estimators=140, max_depth=4, learning_rate=0.04, random_state=42, verbose=-1)),
-        ("rf", RandomForestClassifier(n_estimators=160, max_depth=6, class_weight="balanced", random_state=42)),
-        ("et", ExtraTreesClassifier(n_estimators=160, max_depth=6, class_weight="balanced", random_state=42)),
+        ("catboost", CatBoostClassifier(iterations=200, depth=4, learning_rate=0.03, l2_leaf_reg=4.0, verbose=0, random_seed=42)),
+        ("xgboost", XGBClassifier(n_estimators=140, max_depth=3, learning_rate=0.03, subsample=0.8, colsample_bytree=0.7, reg_alpha=0.5, reg_lambda=2.0, eval_metric="logloss", random_state=42)),
+        ("lightgbm", LGBMClassifier(n_estimators=140, max_depth=3, num_leaves=14, learning_rate=0.03, subsample=0.8, colsample_bytree=0.7, reg_alpha=0.5, reg_lambda=2.0, random_state=42, verbose=-1)),
+        ("rf", RandomForestClassifier(n_estimators=180, max_depth=5, min_samples_leaf=2, class_weight="balanced", random_state=42)),
+        ("et", ExtraTreesClassifier(n_estimators=180, max_depth=5, min_samples_leaf=2, class_weight="balanced", random_state=42)),
     ]
     ensemble = VotingClassifier(estimators=ensemble_estimators, voting="soft")
 
@@ -209,6 +215,7 @@ def train_calibrated_pipeline(
     target_benchmarks: Dict[str, Any] = {}
     shap_explainers: Dict[str, Any] = {}
     shap_global_importances: Dict[str, Any] = {}
+    tree_surrogates: Dict[str, Any] = {}
 
     for target_name in TARGET_NAMES:
         logger.info(f"\n{'='*20} Training Pipeline for Target: {target_name} {'='*20}")
@@ -229,10 +236,17 @@ def train_calibrated_pipeline(
         calibrated_clf.fit(X, y)
         calibrated_models[target_name] = calibrated_clf
 
-        # 4. Generate TreeSHAP explainer using the ensemble's CatBoost / XGBoost component
-        # We use CatBoost or XGBoost from the ensemble for high-fidelity tree explanations
+        # 4. Generate TreeSHAP explainer using regularized XGBoost surrogate
         xgb_surrogate = XGBClassifier(
-            n_estimators=100, max_depth=4, learning_rate=0.05, random_state=42
+            n_estimators=140,
+            max_depth=3,
+            learning_rate=0.03,
+            subsample=0.8,
+            colsample_bytree=0.7,
+            reg_alpha=0.5,
+            reg_lambda=2.0,
+            eval_metric="logloss",
+            random_state=42,
         )
         xgb_surrogate.fit(X, y)
         explainer = shap.TreeExplainer(xgb_surrogate)
@@ -255,6 +269,7 @@ def train_calibrated_pipeline(
             })
         shap_global_importances[target_name] = global_importance_list
         shap_explainers[target_name] = explainer
+        tree_surrogates[target_name] = xgb_surrogate
 
     # Extract sample patients for dashboard testing (Patient 1: Normal, Patient 2: Single vessel LAD, Patient 3: High-risk multivessel)
     sample_indices = [15, 0, 1]  # Carefully selected indices from dataset
@@ -279,6 +294,7 @@ def train_calibrated_pipeline(
     # Save joblib bundle
     model_bundle = {
         "calibrated_models": calibrated_models,
+        "tree_surrogates": tree_surrogates,
         "feature_names": feature_names,
         "benchmark_metrics": target_benchmarks,
         "shap_global_importances": shap_global_importances,

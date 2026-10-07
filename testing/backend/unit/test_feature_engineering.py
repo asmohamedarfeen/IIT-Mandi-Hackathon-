@@ -89,3 +89,48 @@ def test_prepare_training_data_leakage_exclusion():
     for t_name, series in targets.items():
         assert len(series) == len(X_df)
         assert set(series.unique()).issubset({0, 1})
+
+
+def test_advanced_biomarkers_and_pruning():
+    """Verify that advanced clinical biomarkers and zero-variance pruning execute correctly."""
+    dataset_path = "extention of Z-Alizadeh sani dataset.xlsx"
+    X_df, targets, feature_names = prepare_training_data(dataset_path)
+
+    # Verify zero-variance feature Exertional CP is pruned
+    assert "Exertional CP" not in X_df.columns
+    assert "Exertional CP" not in feature_names
+
+    # Verify presence of evidence-based clinical biomarkers
+    expected_new_biomarkers = [
+        "Pulse_Pressure",
+        "Mean_Arterial_Pressure",
+        "Shock_Index",
+        "Castelli_Risk_Index_I",
+        "Castelli_Risk_Index_II",
+        "Atherogenic_Index_Plasma",
+        "TyG_Index",
+        "Non_HDL_Cholesterol",
+        "NLR",
+        "PLR",
+        "SII",
+        "BUN_CR_Ratio",
+        "Age_EF_Ratio",
+        "ECG_Abnormality_Score",
+        "Ischemic_ECG",
+        "Has_RWMA",
+        "RWMA_LAD_Territory",
+        "RWMA_LCX_Territory",
+        "RWMA_RCA_Territory",
+        "Pretest_PTP_Score",
+        "Metabolic_Risk_Score",
+        "Lifestyle_Risk_Index",
+        "Log_TG",
+        "Log_CR",
+        "Log_ESR",
+        "Log_WBC",
+        "Log_FBS",
+        "Log_BUN",
+    ]
+    for biomarker in expected_new_biomarkers:
+        assert biomarker in X_df.columns, f"Missing biomarker: {biomarker}"
+        assert not X_df[biomarker].isna().any(), f"NaN values detected in biomarker: {biomarker}"

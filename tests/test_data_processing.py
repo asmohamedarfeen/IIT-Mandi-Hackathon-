@@ -3,6 +3,7 @@
 import os
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from src.data_processing import (
@@ -31,6 +32,37 @@ def test_load_and_clean_dataset_nonexistent_file() -> None:
     """Verifies that attempting to load a non-existent file raises FileNotFoundError."""
     with pytest.raises(FileNotFoundError):
         load_and_clean_dataset("non_existent_file.xlsx")
+
+
+def test_load_and_clean_dataset_whitespace_and_null_handling(tmp_path) -> None:
+    """Verifies whitespace is stripped prior to typo replacement and nulls are preserved."""
+    test_excel_path = tmp_path / "test_data.xlsx"
+    mock_df = pd.DataFrame(
+        {
+            " Age ": [50, 60, 70],
+            "Sex ": [" Fmale ", "Male ", "Female"],
+            "OptionalCat": [" Yes ", np.nan, "No "],
+            "Cath": ["CAD", "Normal", "CAD"],
+        }
+    )
+    mock_df.to_excel(test_excel_path, index=False)
+
+    cleaned_df = load_and_clean_dataset(str(test_excel_path))
+
+    # Column header stripped
+    assert "Age" in cleaned_df.columns
+    assert "Sex" in cleaned_df.columns
+
+    # Whitespace stripped before typo replacement
+    assert "Female" in cleaned_df["Sex"].values
+    assert "Fmale" not in cleaned_df["Sex"].values
+    assert " Male " not in cleaned_df["Sex"].values
+    assert (cleaned_df["Sex"] == "Female").sum() == 2
+
+    # Null preserved defensively (not converted to string 'nan')
+    assert cleaned_df["OptionalCat"].isna().sum() == 1
+    assert "nan" not in cleaned_df["OptionalCat"].values
+    assert "Yes" in cleaned_df["OptionalCat"].values
 
 
 def test_prepare_features_and_targets_leakage_prevention() -> None:

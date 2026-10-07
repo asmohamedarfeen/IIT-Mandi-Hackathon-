@@ -38,13 +38,13 @@ def load_and_clean_dataset(filepath: str) -> pd.DataFrame:
     # 1. Clean column strings
     df.columns = [str(c).strip() for c in df.columns]
 
-    # 2. Fix typos in categorical values
+    # 2. Strip whitespace in string columns defensively (preserve nulls)
+    for col in df.select_dtypes(include="object").columns:
+        df[col] = df[col].apply(lambda s: s.strip() if isinstance(s, str) else s)
+
+    # 3. Fix typos in categorical values
     if "Sex" in df.columns:
         df["Sex"] = df["Sex"].replace({"Fmale": "Female"})
-
-    # 3. Strip whitespace in string columns
-    for col in df.select_dtypes(include="object").columns:
-        df[col] = df[col].astype(str).str.strip()
 
     # 4. Drop zero-variance columns (e.g. Exertional CP where all values are 'N')
     zero_var_cols = [

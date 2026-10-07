@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/Dockerfile.backend
+    container_name: cardiovision-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - DATABASE_URL=sqlite:////app/db/cardiovision.db
+      - ARTIFACTS_DIR=/app/artifacts
+    volumes:
+      - db-data:/app/db
+
+  frontend:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/Dockerfile.frontend
+    container_name: cardiovision-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  db-data:

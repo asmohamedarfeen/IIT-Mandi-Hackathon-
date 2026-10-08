@@ -17,3 +17,6 @@ catboost_info/
 # Databases
 *.db
 db/*.db
+
+# Local reproducible Python runtime
+.venv/

@@ -1,7 +1,7 @@
 """
 CardioVision AI Prediction & Explainability Service.
 Handles model loading, feature preparation, multi-target inference,
-calibrated probability estimation, 3D anatomical risk coloring, and TreeSHAP patient explanations.
+calibrated probability estimation, 3D anatomical risk coloring, and independent XGBoost TreeSHAP explanations.
 """
 
 import os
@@ -138,6 +138,7 @@ class PredictionService:
     _instance = None
 
     def __init__(self):
+        self.ready = False
         self.bundle: Optional[Dict[str, Any]] = None
         self.tree_explainers: Dict[str, Any] = {}
         self.anatomy_cache: Optional[Dict[str, Any]] = None
@@ -149,31 +150,49 @@ class PredictionService:
             logger.warning(f"Model bundle not found at {settings.MODEL_BUNDLE_PATH}. Need to run pipeline first.")
             return
 
-        logger.info(f"Loading model bundle from {settings.MODEL_BUNDLE_PATH}...")
-        self.bundle = joblib.load(settings.MODEL_BUNDLE_PATH)
+        try:
+            logger.info(f"Loading model bundle from {settings.MODEL_BUNDLE_PATH}...")
+            self.bundle = joblib.load(settings.MODEL_BUNDLE_PATH)
+            if not isinstance(self.bundle, dict) or not self.bundle.get("feature_names"):
+                raise ValueError("Model bundle has no feature contract")
 
-        # Initialize TreeSHAP explainers for fast patient-level explanation
-        for target in TARGET_NAMES:
-            if "tree_surrogates" in self.bundle and target in self.bundle["tree_surrogates"]:
-                surrogate = self.bundle["tree_surrogates"][target]
-                self.tree_explainers[target] = shap.TreeExplainer(surrogate)
-            else:
-                calibrated = self.bundle["calibrated_models"][target]
-                # Retrieve base estimator from calibrated classifier
-                cal_clf = calibrated.calibrated_classifiers_[0]
-                voting_clf = getattr(cal_clf, "estimator", getattr(cal_clf, "base_estimator", None))
-                xgb_est = [est for name, est in voting_clf.named_estimators_.items() if name == "xgboost"][0]
-                self.tree_explainers[target] = shap.TreeExplainer(xgb_est)
+            # Initialize TreeSHAP explainers for fast patient-level explanation
+            for target in TARGET_NAMES:
+                if "tree_surrogates" in self.bundle and target in self.bundle["tree_surrogates"]:
+                    surrogate = self.bundle["tree_surrogates"][target]
+                    self.tree_explainers[target] = shap.TreeExplainer(surrogate)
+                else:
+                    calibrated = self.bundle["calibrated_models"][target]
+                    # Retrieve base estimator from calibrated classifier
+                    cal_clf = calibrated.calibrated_classifiers_[0]
+                    voting_clf = getattr(cal_clf, "estimator", getattr(cal_clf, "base_estimator", None))
+                    xgb_est = [est for name, est in voting_clf.named_estimators_.items() if name == "xgboost"][0]
+                    self.tree_explainers[target] = shap.TreeExplainer(xgb_est)
 
-        # Load benchmark summary if present
-        if os.path.exists(settings.BENCHMARK_PATH):
-            with open(settings.BENCHMARK_PATH, "r") as f:
-                self.benchmark_cache = json.load(f)
+            # Load benchmark summary if present
+            if os.path.exists(settings.BENCHMARK_PATH):
+                with open(settings.BENCHMARK_PATH, "r") as f:
+                    self.benchmark_cache = json.load(f)
 
-        logger.info("CardioVision PredictionService successfully initialized.")
+            # Readiness means all four predictors and explanations executed successfully.
+            prediction = self.predict(PatientInputSchema())
+            probabilities = [prediction.overall_cad.probability] + [risk.probability for risk in prediction.vessels.values()]
+            if not all(np.isfinite(value) and 0 <= value <= 1 for value in probabilities):
+                raise ValueError("Model readiness check returned invalid probabilities")
+            self.ready = True
+            logger.info("CardioVision PredictionService successfully initialized.")
+        except Exception:
+            self.bundle = None
+            self.tree_explainers.clear()
+            self.ready = False
+            logger.exception("Model initialization failed; prediction service is unavailable")
+
+    @property
+    def models_ready(self):
+        return self.ready and self.bundle is not None
 
     def _prepare_patient_feature_vector(self, patient_data: PatientInputSchema) -> Tuple[np.ndarray, pd.DataFrame]:
-        """Convert Pydantic patient schema into clean engineered 64-element feature vector."""
+        """Convert Pydantic patient schema into clean engineered feature vector in saved bundle order."""
         # Convert schema to dict with alias support
         raw_dict = patient_data.model_dump(by_alias=True)
         if "patient_id" in raw_dict:
@@ -187,12 +206,10 @@ class PredictionService:
 
         # Align with bundle feature names
         expected_features = self.bundle["feature_names"]
-        for feat in expected_features:
-            if feat not in engineered_df.columns:
-                engineered_df[feat] = 0.0
-
         aligned_df = engineered_df[expected_features]
         vector = aligned_df.values.astype(np.float32)
+        if not np.isfinite(vector).all():
+            raise ValueError("Model input contains non-finite feature values")
         return vector, aligned_df
 
     def _determine_risk_level(self, proba: float) -> Tuple[str, str]:
@@ -206,7 +223,7 @@ class PredictionService:
 
     def predict(self, patient_data: PatientInputSchema) -> PredictionResponse:
         """
-        Executes multi-target calibrated prediction and generates patient-specific TreeSHAP explanations.
+        Executes multi-target calibrated prediction and generates independent XGBoost TreeSHAP explanations.
         """
         if self.bundle is None:
             self._load_artifacts()
@@ -307,7 +324,7 @@ class PredictionService:
         raise FileNotFoundError("Benchmark metrics not generated.")
 
     def get_sample_patients(self) -> List[Dict[str, Any]]:
-        """Returns pre-loaded representative clinical cases (Healthy, Single LAD, Multivessel CAD)."""
+        """Returns the three supplied clinical examples with their recorded outcome labels."""
         if self.bundle and "sample_patients" in self.bundle:
             return self.bundle["sample_patients"]
         if self.benchmark_cache and "sample_patients" in self.benchmark_cache:

@@ -3,7 +3,8 @@ Pydantic schemas for patient clinical data input and validation.
 """
 
 from typing import Optional, Dict, Any, Union
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
+from backend.cardio.constants import CATEGORY_CODES, encode_category
 
 
 class PatientInputSchema(BaseModel):
@@ -19,7 +20,7 @@ class PatientInputSchema(BaseModel):
     Sex: Union[str, int, float] = Field("Male", description="Biological sex ('Male'/'Female' or 1/0)")
     Weight: float = Field(72.0, ge=30.0, le=250.0, description="Weight in kg")
     Length: float = Field(170.0, ge=100.0, le=220.0, description="Height/Length in cm")
-    BMI: Optional[float] = Field(None, description="Body Mass Index (computed if omitted)")
+    BMI: Optional[float] = Field(None, gt=0, description="Body Mass Index (computed if omitted)")
 
     # Medical History & Risk Factors
     DM: Union[int, float] = Field(0, description="Diabetes Mellitus (0=No, 1=Yes)")
@@ -83,9 +84,20 @@ class PatientInputSchema(BaseModel):
     Region_RWMA: Union[int, float] = Field(0, alias="Region RWMA", description="Regional Wall Motion Abnormality score")
     VHD: Union[str, int, float] = Field("N", description="Valvular Heart Disease ('N', 'mild', 'Moderate', 'Severe' or 0/1/2/3)")
 
-    class Config:
-        populate_by_name = True
-        extra = "ignore"
+    model_config = ConfigDict(populate_by_name=True, extra="ignore", allow_inf_nan=False, validate_default=True)
+
+    @field_validator("*", mode="before")
+    @classmethod
+    def validate_categories(cls, value, info):
+        field = cls.model_fields[info.field_name]
+        name = field.alias or info.field_name
+        return encode_category(value, name) if name in CATEGORY_CODES else value
+
+    @model_validator(mode="after")
+    def compute_missing_bmi(self):
+        if self.BMI is None:
+            self.BMI = self.Weight / (self.Length / 100.0) ** 2
+        return self
 
 
 class SamplePatientItem(BaseModel):

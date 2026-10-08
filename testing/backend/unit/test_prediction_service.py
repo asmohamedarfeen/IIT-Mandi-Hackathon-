@@ -62,3 +62,17 @@ def test_prediction_output_structure_and_calibration():
     assert hasattr(top_shap, "display_name")
     assert hasattr(top_shap, "contribution")
     assert top_shap.impact_direction in ["increases_risk", "decreases_risk"]
+
+
+def test_artifact_load_failure_keeps_service_available_for_health(monkeypatch):
+    from backend.cardio.service.prediction_service import PredictionService
+    from unittest.mock import Mock
+    monkeypatch.setattr('backend.cardio.service.prediction_service.joblib.load',
+                        Mock(side_effect=RuntimeError('invalid model artifact')))
+    failed = PredictionService()
+    assert failed.bundle is None
+    assert failed.models_ready is False
+
+
+def test_working_model_readiness():
+    assert prediction_service_instance.models_ready is True

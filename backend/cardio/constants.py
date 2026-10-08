@@ -100,3 +100,30 @@ CLINICAL_SAFETY_DISCLAIMER: Final[str] = (
     "Predictions and 3D maps do not constitute diagnostic medical advice or replace formal "
     "coronary angiography."
 )
+
+
+# One category contract shared by dataset cleaning and the API boundary.
+CATEGORY_CODES = {
+    **{name: {"n": 0, "y": 1} for name in RAW_BINARY_TEXT_FEATURES},
+    **{name: {} for name in RAW_BINARY_NUMERIC_FEATURES},
+    "Sex": {"male": 1, "fmale": 0, "female": 0},
+    "BBB": {"n": 0, "lbbb": 1, "rbbb": 2},
+    "VHD": {"n": 0, "mild": 1, "moderate": 2, "severe": 3},
+    "Function Class": {}, "Region RWMA": {},
+}
+CATEGORY_MAXIMUM = {"BBB": 2, "VHD": 3, "Function Class": 4, "Region RWMA": 4}
+
+
+def encode_category(value, name):
+    """Accept declared labels and integer-valued numeric codes; reject unknowns."""
+    text = str(value).strip().lower()
+    if text in CATEGORY_CODES[name]:
+        return CATEGORY_CODES[name][text]
+    try:
+        number = float(text)
+    except (ValueError, TypeError):
+        raise ValueError(f"Unsupported category for {name}") from None
+    maximum = CATEGORY_MAXIMUM.get(name, 1)
+    if not 0 <= number <= maximum or not number.is_integer():
+        raise ValueError(f"{name} must be an integer category from 0 to {maximum}")
+    return int(number)

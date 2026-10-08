@@ -15,6 +15,8 @@ from backend.cardio.constants import (
     LEAKAGE_COLUMNS,
     TARGET_NAMES,
     ZERO_VARIANCE_COLUMNS,
+    CATEGORY_CODES,
+    encode_category,
 )
 
 
@@ -101,6 +103,8 @@ class ClinicalFeatureEngineer(BaseEstimator, TransformerMixin):
             if col in df.columns:
                 ecg_components.append(pd.to_numeric(df[col], errors="coerce").fillna(0).astype(int))
 
+        # Saved weights were trained after encoding: these text comparisons omitted
+        # encoded LVH/Poor R Progression. Preserve that composite until retraining.
         if "LVH" in df.columns:
             ecg_components.append(df["LVH"].astype(str).str.upper().eq("Y").astype(int))
         if "Poor R Progression" in df.columns:
@@ -135,11 +139,11 @@ class ClinicalFeatureEngineer(BaseEstimator, TransformerMixin):
         )
 
         # 9. Composite Metabolic Risk & Lifestyle Scores
-        is_female = sex_col.astype(str).str.lower().str.startswith("f") | sex_col.astype(str).eq("0")
-        hdl_risk = np.where(is_female, (hdl < 50.0).astype(int), (hdl < 40.0).astype(int))
+        # The saved bundle background/sample vectors exclude HDL from this score.
+        # Keep the fitted definition; adding HDL requires retraining and validation.
         tg_risk = (tg > 150.0).astype(int)
         fbs_risk = (fbs > 100.0).astype(int)
-        df["Metabolic_Risk_Score"] = dm + htn + hdl_risk + tg_risk + fbs_risk
+        df["Metabolic_Risk_Score"] = dm + htn + tg_risk + fbs_risk
         df["Lifestyle_Risk_Index"] = (smoker * 1.0) + (ex_smoker * 0.5) + (fh * 1.0) + (htn * 1.0)
 
         # 10. Skewed clinical lab log-transforms
@@ -159,30 +163,19 @@ def clean_and_encode_dataset(df: pd.DataFrame) -> pd.DataFrame:
     # Normalize column names (strip whitespace)
     df.columns = [col.strip() for col in df.columns]
 
-    # Standardize binary text features ('Y'/'N' -> 1/0)
-    for col in RAW_BINARY_TEXT_FEATURES:
+    for col in CATEGORY_CODES:
         if col in df.columns:
-            df[col] = df[col].astype(str).str.strip().str.upper().map(
-                lambda val: 1 if val == "Y" else (0 if val == "N" else 0)
-            )
+            df[col] = df[col].map(lambda value: encode_category(value, col))
 
-    # Standardize Sex ('Male' -> 1, 'Fmale'/'Female' -> 0)
-    if "Sex" in df.columns:
-        df["Sex"] = df["Sex"].astype(str).str.strip().str.lower().map(
-            lambda val: 1 if val == "male" else 0
-        )
-
-    # Standardize BBB ('N' -> 0, 'LBBB' -> 1, 'RBBB' -> 2)
-    if "BBB" in df.columns:
-        df["BBB"] = df["BBB"].astype(str).str.strip().str.upper().map(
-            lambda val: 1 if "LBBB" in val else (2 if "RBBB" in val else 0)
-        )
-
-    # Standardize VHD ('N' -> 0, 'mild' -> 1, 'Moderate' -> 2, 'Severe' -> 3)
-    if "VHD" in df.columns:
-        df["VHD"] = df["VHD"].astype(str).str.strip().str.lower().map(
-            lambda val: 1 if "mild" in val else (2 if "moderate" in val else (3 if "severe" in val else 0))
-        )
+    # Fill missing BMI per row before numeric imputation, retaining it as a feature.
+    if "Weight" in df.columns and "Length" in df.columns:
+        computed_bmi = pd.to_numeric(df["Weight"], errors="coerce") / (
+            pd.to_numeric(df["Length"], errors="coerce") / 100.0
+        ) ** 2
+        if "BMI" in df.columns:
+            df["BMI"] = pd.to_numeric(df["BMI"], errors="coerce").fillna(computed_bmi)
+        else:
+            df["BMI"] = computed_bmi
 
     # Clean numeric columns
     for col in RAW_NUMERIC_FEATURES + RAW_BINARY_NUMERIC_FEATURES:

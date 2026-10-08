@@ -7,24 +7,24 @@
 [![Three.js](https://img.shields.io/badge/Three.js-WebGL-black.svg)](https://threejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-CardioVision AI is a production-grade, clinically interpretable multi-task machine learning and 3D visualization platform for cardiovascular risk assessment. Using an extended cohort of the Z-Alizadeh Sani clinical dataset (303 patients), the system predicts overall **Coronary Artery Disease (CAD)** and vessel-specific stenosis in the three major epicardial arteries (**LAD**, **LCX**, and **RCA**) without target leakage, mapping calibrated probability estimates onto an interactive, anatomically registered 3D heart model.
+CardioVision AI is an experimental machine learning and 3D visualization tool. Its supplied models estimate **CAD**, **LAD**, **LCX**, and **RCA** scores from an extended 303-record Z-Alizadeh Sani dataset. The display uses supplied BodyParts3D anatomy, not patient-specific imaging. See [the model and anatomy audit](docs/MODEL_AND_ANATOMY_AUDIT.md) for verified runtime versions, feature compatibility, source provenance and evidence limits.
 
 ---
 
 ## Key Highlights
 
 - **Leak-Free Multi-Task Prediction:** Strictly excludes catheterization outcome variables (`Cath`, `CAD`, `LAD`, `LCX`, `RCA`) from the predictor space while evaluating four independent targets.
-- **Ensemble ML Architecture:** Benchmarked CatBoost, XGBoost, LightGBM, Random Forest, Extra Trees, and Logistic Regression with Stratified 10-Fold Cross-Validation, deployed as a calibrated soft-voting ensemble achieving **>93% ROC-AUC** for CAD.
-- **Calibrated Probabilities:** Platt/Sigmoid calibration yields true risk percentages (0–100%) rather than uncalibrated classification scores.
-- **Explainable AI (TreeSHAP):** Patient-specific marginal feature contributions explain why an individual patient is predicted to have stenosis in each arterial territory.
+- **Ensemble ML Architecture:** Supplied ten-fold metrics cover six candidates and an uncalibrated voting ensemble. The saved CAD ensemble ROC-AUC is 94.66%; those metrics do not measure the deployed calibrated models.
+- **Model Scores:** The saved models apply sigmoid calibration through five-fold cross-validation. Clinical calibration and external validation have not been established.
+- **TreeSHAP:** Contributions come from independently fitted XGBoost models. They do not exactly explain the calibrated voting ensembles.
 - **Interactive 3D Heart Viewer:** WebGL Three.js canvas dynamically color-codes coronary arteries (**Green <35%**, **Amber 35–65%**, **Red $\ge$ 65%**) with orbit controls, anatomical territory focus, and cardiac pulsation animation.
-- **Production Architecture:** Modular FastAPI backend adhering to `AGENT.md`, React 18 + TypeScript + Tailwind CSS frontend, SQLAlchemy persistence, and Docker multi-stage deployments.
+- **Application Architecture:** Modular FastAPI backend adhering to `AGENT.md`, React 18 + TypeScript + Tailwind CSS frontend, SQLAlchemy persistence, and Docker multi-stage deployments.
 
 ---
 
 ## Stratified 10-Fold Cross-Validation Performance
 
-All models were evaluated across 10 stratified folds on the full 303-patient dataset:
+The saved benchmark reports ten stratified folds on 303 records. The training source evaluates uncalibrated candidates and voting ensembles; calibrated models are fitted afterward. These supplied metrics were not rerun or independently validated during the redesign.
 
 | Target | Model Candidate | ROC-AUC | F1 Score | Accuracy | Precision | Recall |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
@@ -106,14 +106,18 @@ Or run services individually:
 
 #### Backend:
 ```bash
-# Install backend dependencies
-pip install -r backend/requirements.txt
+# On macOS, XGBoost and LightGBM require OpenMP
+brew install libomp
+
+# Create the verified Python runtime and install pinned dependencies
+uv venv --python python3.11 .venv
+uv pip install --python .venv/bin/python -r backend/requirements.txt
 
 # Run migrations
-alembic upgrade head
+.venv/bin/alembic upgrade head
 
 # Launch FastAPI server
-uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+.venv/bin/python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 Interactive Swagger documentation will be available at: [http://localhost:8000/docs](http://localhost:8000/docs)
 
@@ -142,30 +146,18 @@ docker-compose up --build
 
 ```bash
 # Run all backend unit and API integration tests
-python3 -m pytest testing/
+.venv/bin/python -m pytest testing/backend -q
 ```
 
-Output:
-```
-testing/backend/api/test_cardio_api.py::test_health_check_endpoint PASSED
-testing/backend/api/test_cardio_api.py::test_benchmarks_endpoint PASSED
-testing/backend/api/test_cardio_api.py::test_sample_patients_endpoint PASSED
-testing/backend/api/test_cardio_api.py::test_prediction_endpoint PASSED
-testing/backend/api/test_cardio_api.py::test_3d_anatomy_endpoint PASSED
-testing/backend/unit/test_feature_engineering.py::test_leakage_columns_definition PASSED
-testing/backend/unit/test_feature_engineering.py::test_clinical_feature_engineer_calculations PASSED
-testing/backend/unit/test_feature_engineering.py::test_prepare_training_data_leakage_exclusion PASSED
-testing/backend/unit/test_prediction_service.py::test_prediction_service_initialization PASSED
-testing/backend/unit/test_prediction_service.py::test_prediction_output_structure_and_calibration PASSED
-
-======================== 10 passed in 5.30s ========================
-```
+Tests create a temporary isolated SQLite database before importing the application.
+The suite verifies input encoding, omitted BMI, saved feature definitions, all three
+example round trips, readiness, persistence rollback and deterministic geometry.
 
 ---
 
 ## Retraining the Model Pipeline
 
-To execute the complete 10-fold Stratified Cross-Validation benchmark, calibrate probability estimators, compute TreeSHAP summaries, and serialize artifacts:
+Retraining replaces the supplied weights. The current engineer emits 86 columns, while the preserved bundle binds to 84; retraining is a separate validation task. To run the training script deliberately:
 
 ```bash
 python3 scripts/train_pipeline.py
@@ -174,7 +166,7 @@ python3 scripts/train_pipeline.py
 To regenerate the 3D heart anatomical meshes from the raw BodyParts3D archive:
 
 ```bash
-python3 scripts/process_3d_heart.py
+.venv/bin/python scripts/process_3d_heart.py
 ```
 
 ---

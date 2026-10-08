@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 class VesselRiskInfo(BaseModel):
     vessel: str = Field(..., description="Vessel or target code: CAD, LAD, LCX, RCA")
-    probability: float = Field(..., description="Calibrated risk probability (0.0 - 1.0)")
+    probability: float = Field(..., description="Sigmoid-calibrated model score (0.0 - 1.0); clinical calibration is unverified")
     probability_percent: float = Field(..., description="Percentage risk (0.0% - 100.0%)")
     risk_level: str = Field(..., description="'Low Risk', 'Intermediate Risk', or 'High Stenosis Risk'")
     color_hex: str = Field(..., description="Hex color for 3D visualization: Green, Amber, or Red")
@@ -18,7 +18,7 @@ class VesselRiskInfo(BaseModel):
 class SHAPFeatureImpact(BaseModel):
     feature: str = Field(..., description="Feature column name")
     display_name: str = Field(..., description="User-friendly clinical label")
-    contribution: float = Field(..., description="SHAP value impact on log-odds / risk probability")
+    contribution: float = Field(..., description="Independent XGBoost SHAP contribution in log-odds; not an ensemble probability contribution")
     patient_value: Any = Field(..., description="The patient's recorded value")
     impact_direction: str = Field(..., description="'increases_risk' or 'decreases_risk'")
 

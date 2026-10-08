@@ -12,7 +12,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import time
@@ -22,6 +22,7 @@ from backend.core.logging import setup_logging, logger
 from backend.core.database import engine, Base
 from backend.cardio.routes import cardio_router
 from backend.cardio.constants import CLINICAL_SAFETY_DISCLAIMER
+from backend.cardio.dependencies import get_prediction_service
 
 # Initialize logging
 setup_logging()
@@ -69,9 +70,12 @@ app.include_router(cardio_router, prefix=settings.API_V1_PREFIX)
 
 @app.get("/health", tags=["Health"])
 @app.get(f"{settings.API_V1_PREFIX}/health", tags=["Health"])
-def health_check():
+def health_check(response: Response, service=Depends(get_prediction_service)):
+    ready = service.models_ready
+    response.status_code = 200 if ready else 503
     return {
-        "status": "healthy",
+        "status": "healthy" if ready else "unavailable",
+        "models_ready": ready,
         "service": settings.PROJECT_NAME,
         "version": settings.VERSION,
         "disclaimer": CLINICAL_SAFETY_DISCLAIMER,

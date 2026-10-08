@@ -4,6 +4,8 @@ Adheres strictly to AGENT.md: All business logic is delegated to service layer.
 """
 
 import time
+import logging
+
 from typing import List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -21,13 +23,14 @@ from backend.cardio.schemas.prediction_schema import (
     ThreeDAnatomyResponse,
 )
 
+logger = logging.getLogger("CardioVision.API")
 router = APIRouter(prefix="", tags=["CardioVision Predictions"])
 
 
 @router.post(
     "/predict",
     response_model=PredictionResponse,
-    summary="Predict multi-vessel CAD risk with calibrated probabilities and SHAP explanations",
+    summary="Predict multi-vessel CAD scores with independently fitted XGBoost explanations",
 )
 def predict_cardiac_risk(
     patient: PatientInputSchema,
@@ -59,19 +62,22 @@ def predict_cardiac_risk(
             duration_ms = (time.time() - start_time) * 1000.0
             repo.log_audit("/predict", duration_ms, 200)
         except Exception as db_err:
-            # Failure to write to DB should not block clinical inference response
-            pass
+            repo.db.rollback()
+            # Log the exception type only: SQL exception strings may expose patient inputs.
+            logger.error("Assessment persistence failed (%s)", type(db_err).__name__)
 
         return response
     except Exception as exc:
         duration_ms = (time.time() - start_time) * 1000.0
         try:
             repo.log_audit("/predict", duration_ms, 500)
-        except Exception:
-            pass
+        except Exception as db_err:
+            repo.db.rollback()
+            logger.error("Inference audit persistence failed (%s)", type(db_err).__name__)
+        logger.error("Inference failed (%s)", type(exc).__name__)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Inference error: {str(exc)}",
+            detail="Prediction service is unavailable. Please retry.",
         )
 
 
@@ -94,7 +100,7 @@ def get_model_benchmarks(
 @router.get(
     "/sample-patients",
     response_model=List[SamplePatientItem],
-    summary="Get representative patient profiles (Healthy, LAD Stenosis, Multivessel CAD)",
+    summary="Get supplied example profiles with recorded outcome labels",
 )
 def get_sample_cohort(
     service: PredictionService = Depends(get_prediction_service),

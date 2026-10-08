@@ -31,15 +31,8 @@ export function MainLayout({
           CardioVision
         </a>
         <p>
-          Experimental decision support.
-          <br />
-          Built to explore. Interpreted with care.
+          Research MVP · Experimental estimates, not a diagnosis.
         </p>
-        <p>
-          Predictions and reference anatomy do not provide a diagnosis or
-          replace formal coronary angiography.
-        </p>
-        <a href="#assessment">Return to workspace ↑</a>
       </footer>
       <BenchmarkModal
         isOpen={benchmarks}

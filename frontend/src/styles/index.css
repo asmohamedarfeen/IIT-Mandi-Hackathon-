@@ -67,7 +67,7 @@ h1,
 h2,
 h3 {
   font-weight: 500;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.03em;
 }
 p {
   line-height: 1.65;
@@ -1990,5 +1990,75 @@ i {
   .story-card {
     position: relative;
     top: auto !important;
+  }
+}
+.assessment-section {
+  padding-top: 32px;
+  padding-bottom: 32px;
+  border-top: 0;
+}
+.section-heading h1 {
+  font-size: 32px;
+  line-height: 1.2;
+}
+.assessment-intro {
+  margin-top: 8px;
+  color: #596052;
+  font-size: 14px;
+}
+.case-carousel {
+  margin-bottom: 24px;
+}
+.workspace-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+}
+.workspace-grid > * {
+  min-width: 0;
+}
+.workspace-grid .anatomical-stage {
+  position: sticky;
+  top: 24px;
+  height: 610px;
+  margin: 0;
+}
+.workspace-grid .anatomical-stage:fullscreen {
+  position: fixed;
+  height: 100vh;
+}
+.explanation {
+  padding-top: 32px;
+  padding-bottom: 40px;
+  gap: 40px;
+}
+.explanation-intro h2 {
+  font-size: 28px;
+  margin: 0 0 16px;
+}
+.site-footer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding-top: 24px;
+  padding-bottom: 24px;
+  border-top: 1px solid var(--line);
+}
+@media (max-width: 1000px) {
+  .workspace-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .workspace-grid .anatomical-stage {
+    position: relative;
+    top: auto;
+    height: 560px;
+  }
+}
+@media (max-width: 520px) {
+  .section-heading h1 {
+    font-size: 28px;
+  }
+  .workspace-grid .anatomical-stage {
+    height: 520px;
   }
 }

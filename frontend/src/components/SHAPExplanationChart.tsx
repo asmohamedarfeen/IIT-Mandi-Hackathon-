@@ -13,16 +13,10 @@ export function SHAPExplanationChart({
   return (
     <section className="explanation" aria-labelledby="explanation-title">
       <div className="explanation-intro">
-        <p className="eyebrow">Behind the estimate</p>
-        <h2 id="explanation-title">
-          Make the{" "}
-          <br />
-          reasoning visible.
-        </h2>
+        <h2 id="explanation-title">Contributing factors</h2>
         <p>
-          Explore which inputs influence a separate XGBoost explanation model.
-          These log-odds contributions are surrogate SHAP values, not exact
-          attributions of the calibrated ensemble.
+          SHAP contributions from a separate explanation model, not exact
+          explanations of the assessment score.
         </p>
         <div className="shap-legend">
           <span>
@@ -81,12 +75,7 @@ export function SHAPExplanationChart({
           ))
         ) : (
           <div className="explanation-empty">
-            <span aria-hidden="true">↗</span>
-            <h3>A result with context.</h3>
-            <p>
-              Run an assessment to reveal the input contributions for each
-              target.
-            </p>
+            <p>No explanation available for this target.</p>
           </div>
         )}
       </div>

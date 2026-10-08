@@ -29,12 +29,10 @@ export function PatientForm({
     >
       <div className="form-intro">
         <div>
-          <p className="eyebrow">Clinical workspace</p>
-          <h2>Build the full picture.</h2>
+          <h2>Patient details</h2>
         </div>
         <p>
-          Review every group before assessment. Initial values are editable
-          defaults.
+          Review all groups. Values are prefilled defaults.
         </p>
       </div>
       <label className="patient-id">
@@ -135,8 +133,8 @@ export function PatientForm({
       <div className="form-submit">
         <p>
           {ready
-            ? "Ready when you are. Review, then assess."
-            : "Assessment requires a ready model service."}
+            ? "Inputs and results are saved. Use de-identified data."
+            : "Waiting for the model service. Inputs and results will be saved."}
         </p>
         <button
           className="button primary"

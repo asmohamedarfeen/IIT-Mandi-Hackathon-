@@ -3,17 +3,12 @@ import {
   ArrowUpRight,
   ArrowLeft,
   ArrowRight,
-  Activity,
   RefreshCw,
 } from "lucide-react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
 import { HeartViewer3D } from "../components/HeartViewer3D";
 import { RiskSummaryCards } from "../components/RiskSummaryCards";
 import { PatientForm } from "../components/PatientForm";
 import { SHAPExplanationChart } from "../components/SHAPExplanationChart";
-import { VESSELS } from "../utils/vessels";
 import { apiService } from "../services/api";
 import {
   DEFAULT_PATIENT,
@@ -26,10 +21,8 @@ import {
   SamplePatient,
   ThreeDAnatomyPayload,
 } from "../utils/types";
-gsap.registerPlugin(ScrollTrigger, useGSAP);
 export function DashboardPage() {
-  const root = useRef<HTMLDivElement>(null),
-    revision = useRef(0),
+  const revision = useRef(0),
     request = useRef(0);
   const [patient, setPatient] = useState(() =>
     normalizePatient(DEFAULT_PATIENT),
@@ -76,48 +69,6 @@ export function DashboardPage() {
       request.current++;
     };
   }, [checkHealth, loadAnatomy, loadSamples]);
-  useGSAP(
-    () => {
-      const media = gsap.matchMedia();
-      media.add(
-        "(min-width: 1000px) and (prefers-reduced-motion: no-preference)",
-        () => {
-          gsap.from(".hero-copy > *", {
-            y: 24,
-            opacity: 0,
-            duration: 0.9,
-            stagger: 0.09,
-            ease: "power2.out",
-          });
-          ScrollTrigger.create({
-            trigger: ".anatomy-story",
-            start: "top 120px",
-            end: "bottom 660px",
-            pin: ".story-title",
-            pinSpacing: false,
-          });
-          gsap.utils
-            .toArray<HTMLElement>(".story-card")
-            .forEach((card, index) => {
-              if (index < 2)
-                gsap.to(card, {
-                  scale: 0.96,
-                  y: -12,
-                  transformOrigin: "top center",
-                  scrollTrigger: {
-                    trigger: card,
-                    start: "top 160px",
-                    end: "bottom 150px",
-                    scrub: true,
-                  },
-                });
-            });
-        },
-      );
-      return () => media.revert();
-    },
-    { scope: root },
-  );
   function changePatient(next: PatientData) {
     revision.current++;
     request.current++;
@@ -168,45 +119,7 @@ export function DashboardPage() {
   }
   const sample = samples[sampleIndex];
   return (
-    <div ref={root}>
-      <section className="hero" aria-labelledby="hero-title">
-        <div className="hero-heading">
-          <p className="eyebrow">Coronary intelligence, in context</p>
-          <h1 id="hero-title">
-            See the heart.
-            <br />
-            <span>Understand the risk.</span>
-          </h1>
-        </div>
-        <div className="hero-composition">
-          <div className="hero-copy">
-            <div className="hero-rule" />
-            <p className="hero-lead">
-              A new perspective
-              <br />
-              on the clinical picture.
-            </p>
-            <p>
-              Bring clinical inputs, vessel-level estimates, and anatomical
-              exploration into one considered workspace.
-            </p>
-            <a className="button primary" href="#assessment">
-              Begin an assessment <ArrowUpRight size={18} />
-            </a>
-            <p className="hero-footnote">
-              A research tool for exploration.
-              <br />
-              Clinical judgment remains essential.
-            </p>
-          </div>
-          <HeartViewer3D
-            anatomyData={anatomy}
-            prediction={stale ? null : prediction}
-            error={anatomyError}
-            onRetry={loadAnatomy}
-          />
-        </div>
-      </section>
+    <div>
       <section
         id="assessment"
         className="assessment-section"
@@ -214,8 +127,8 @@ export function DashboardPage() {
       >
         <div className="section-heading">
           <div>
-            <p className="eyebrow">From inputs to insight</p>
-            <h2 id="assessment-title">Your clinical workspace.</h2>
+            <h1 id="assessment-title">Heart risk assessment</h1>
+            <p className="assessment-intro">Load a sample case or enter patient details.</p>
           </div>
           <div className={"service-state " + health} role="status">
             <i />
@@ -237,11 +150,8 @@ export function DashboardPage() {
         </div>
         <div className="case-carousel">
           <div className="case-intro">
-            <p className="eyebrow">Explore a recorded case</p>
-            <p>
-              Real examples from the training dataset. Select one to populate
-              the inputs, then run an assessment.
-            </p>
+            <p className="eyebrow">Sample cases</p>
+            <p>Examples from the training dataset.</p>
           </div>
           <div className="case-body" aria-live="polite">
             {sample ? (
@@ -312,43 +222,6 @@ export function DashboardPage() {
           </div>
         </div>
         <div className="workspace-grid">
-          <aside className="workspace-context">
-            <Activity size={31} strokeWidth={1.25} />
-            <h3>
-              Every input{" "}
-              <br />
-              adds context.
-            </h3>
-            <p>
-              The assessment combines patient history, symptoms, examination,
-              ECG, laboratory markers, and echocardiography.
-            </p>
-            <ol>
-              <li>
-                <strong>Prepare the case</strong>
-                <span>
-                  Load a recorded example or enter de-identified clinical data.
-                </span>
-              </li>
-              <li>
-                <strong>Review the details</strong>
-                <span>
-                  Open each group. Height and weight automatically update BMI.
-                </span>
-              </li>
-              <li>
-                <strong>Explore the estimate</strong>
-                <span>
-                  Compare the four model outputs and their surrogate
-                  explanations.
-                </span>
-              </li>
-            </ol>
-            <p className="small-note">
-              Submitting an assessment stores its inputs and result in the
-              connected research database. Use de-identified records.
-            </p>
-          </aside>
           <div id="patient-inputs">
             {selectedSample && (
               <div className="loaded-case" role="status">
@@ -371,9 +244,15 @@ export function DashboardPage() {
               </div>
             )}
           </div>
+          <HeartViewer3D
+            anatomyData={anatomy}
+            prediction={stale ? null : prediction}
+            error={anatomyError}
+            onRetry={loadAnatomy}
+          />
         </div>
         <div id="results" className="results-header">
-          <h3>Assessment overview</h3>
+          <h2>Results</h2>
           <p role="status">
             {busy
               ? "Assessment in progress…"
@@ -390,53 +269,7 @@ export function DashboardPage() {
           whole-vessel output, not the location or severity of a lesion.
         </p>
       </section>
-      <SHAPExplanationChart prediction={prediction} stale={stale} />
-      <section className="anatomy-story">
-        <div className="story-title">
-          <p className="eyebrow">Anatomy, made tangible</p>
-          <h2>
-            Three vessels.
-            <br />
-            One connected{" "}
-            <br />
-            perspective.
-          </h2>
-          <p>
-            Follow each coronary tree through the same registered reference
-            heart. The shape stays true to the supplied anatomy.
-          </p>
-          <a className="text-link" href="#top">
-            Explore the interactive heart <ArrowUpRight size={17} />
-          </a>
-        </div>
-        <div className="story-cards">
-          {VESSELS.map((v) => (
-            <article className="story-card" key={v.key}>
-              <div className="story-vessel-title">
-                <span style={{ color: v.color }}>{v.key.toUpperCase()}</span>
-                <span className="vessel-line" style={{ background: v.color }} />
-              </div>
-              <h3>{v.name}</h3>
-              <details className="story-details">
-                <summary>
-                  Explore this vessel <span aria-hidden="true">+</span>
-                </summary>
-                <p>{v.description}</p>
-              </details>
-              <p className="small-note">
-                Reference anatomy · vessel-level exploration
-              </p>
-            </article>
-          ))}
-        </div>
-      </section>
-      <section className="closing">
-        <p className="eyebrow">A considered next step</p>
-        <h2>Bring the picture together.</h2>
-        <a className="button primary" href="#assessment">
-          Start in the workspace <ArrowUpRight size={18} />
-        </a>
-      </section>
+      {prediction && <SHAPExplanationChart prediction={prediction} stale={stale} />}
     </div>
   );
 }

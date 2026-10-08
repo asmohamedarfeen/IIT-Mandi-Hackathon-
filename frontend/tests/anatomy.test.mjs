@@ -75,8 +75,15 @@ test("risk, focus, tissue opacity and visibility update the existing resources; 
   assert.equal(meshes.myocardium.material.opacity, 0.45);
   assert.equal(meshes.myocardium.visible, false);
   assert.equal(meshes.myocardium.material.depthWrite, false);
-  assert.equal(meshes.left_main.material.color.getHexString(), "d9c8b5");
+  assert.equal(meshes.left_main.material.color.getHexString(), "731616");
   assert.equal(meshes.left_main.material.opacity, 1);
+  assert.equal(meshes.myocardium.renderOrder, 0);
+  assert.equal(meshes.lad.renderOrder, 1);
+  // Myocardium color darkens as opacity is reduced below 1.0
+  const reducedOpacityColor = meshes.myocardium.material.color.getHexString();
+  assert.notEqual(reducedOpacityColor, "a53632");
+  const focusedEmissive = meshes.lad.material.emissiveIntensity;
+
   updateAnatomyMeshes(meshes, {
     ...settings,
     prediction: null,
@@ -84,9 +91,12 @@ test("risk, focus, tissue opacity and visibility update the existing resources; 
     visible: true,
     opacity: 1,
   });
-  assert.equal(meshes.lad.material.color.getHexString(), "ebc79b");
+  assert.equal(meshes.lad.material.color.getHexString(), "8f1d1d");
   assert.equal(meshes.lcx.material.opacity, 1);
   assert.equal(meshes.myocardium.material.depthWrite, true);
+  // At opacity 1, myocardium returns to natural base color and vessels have subtle base emissive
+  assert.equal(meshes.myocardium.material.color.getHexString(), "a53632");
+  assert.ok(meshes.lad.material.emissiveIntensity < focusedEmissive);
   Object.values(meshes).forEach((mesh, index) => {
     assert.equal(mesh, originals[index][0]);
     assert.equal(mesh.geometry, originals[index][1]);

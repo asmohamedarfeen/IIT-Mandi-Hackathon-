@@ -105,3 +105,17 @@ Warnings are non-blocking: LightGBM fitted-feature-name metadata warnings when u
 - Complete anatomy needs subsequent browser/performance evaluation; the viewer must support neutral `left_main` and avoid invented motion/patient-specific claims.
 - A persistence failure is logged/rolled back but does not add a new response field because prediction response compatibility is preserved. Separate assessment/audit transactions can leave an assessment without an audit after an audit-write failure.
 - Runtime was verified on macOS arm64 only. Native OpenMP is required on macOS; pinned wheel availability on other architectures was not tested.
+
+## Review fix round 1 — Docker constraints layout
+
+Reviewer identified that Docker copied only requirements.txt into `/app` before pip installation, leaving its sibling constraints file unavailable. Fixed the single COPY instruction to `COPY backend/requirements.txt backend/requirements.lock.txt /app/`. Both files are now present before the existing RUN installation step. No runtime/model/geometry behavior changed.
+
+Verification:
+
+- `docker version` → client 28.4.0 / darwin arm64 available, exit 1: cannot connect to Docker daemon at the user's desktop-linux socket. An actual Docker image build was not run; the daemon was not started or altered.
+- `.venv/bin/python` static-layout check → asserted the two-file COPY precedes pip installation, copied both files into a temporary `app` directory and resolved the literal `-c requirements.lock.txt` sibling from that directory. Output: **PASS: both requirement files copied to /app before pip install; sibling constraints resolve**.
+- Within that temporary container-style layout: `uv pip install --dry-run --python /Users/asmohamedarfeen/.codex/worktrees/cardiovision-redesign/iit-ma/.venv/bin/python -r requirements.txt` → **Audited 20 packages; would make no changes**. This verifies requirements/constraints path resolution and the installed local dependency set; it does not verify Linux wheels or the full container build.
+- `uv pip check --python .venv/bin/python` → **Checked 62 packages; all installed packages are compatible**.
+- `git diff --check` → passed.
+
+The existing **205 warnings** remain recorded above. They were not broadly suppressed or expanded into unrelated dependency/model changes. Full container-build verification remains unavailable until a Docker daemon is running.

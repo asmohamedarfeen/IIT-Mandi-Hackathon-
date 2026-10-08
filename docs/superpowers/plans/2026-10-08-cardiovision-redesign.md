@@ -1,0 +1,51 @@
+# CardioVision Redesign Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Ship a professional UI, faithful supplied heart anatomy, and working verified inference end to end.
+**Architecture:** Keep FastAPI and React/Vite. Correct shared preprocessing and asset generation first; replace presentation and Three.js lifecycle next; validate the integrated application last.
+**Tech Stack:** Python 3.11, FastAPI, scikit-learn bundle, React 18, TypeScript, Three.js, Tailwind, GSAP and @gsap/react.
+**Spec:** docs/superpowers/specs/2026-10-08-cardiovision-design.md
+
+## Global Constraints
+- Work only in /Users/asmohamedarfeen/.codex/worktrees/cardiovision-redesign/iit-ma on codex/cardiovision-redesign; do not push or publish.
+- Preserve trained model weights and API response compatibility. Do not claim patient-specific anatomy, physiological motion, calibrated benchmark validation, or ensemble-exact SHAP.
+- Use supplied BodyParts3D geometry, preserve coordinate registration, and remove arbitrary mesh subsampling. No procedural heart substitute.
+- Retain React/Vite/FastAPI; use existing dependencies plus GSAP and @gsap/react for requested motion. Prefer simple native controls, accessible focus, keyboard operation and responsive layouts.
+- No fabricated testimonials, decorative fake metrics, random stock images, emojis, or raw technical error dumps.
+- Each implementer works alone, does not spawn agents, commits its task and writes a detailed report with test commands/results and limitations.
+
+## Review Focus
+- Numeric and text category representations must produce equivalent model inputs (Task 1).
+- Omitted BMI must derive from weight/height; form edits must not retain stale BMI or stale results (Tasks 1/2).
+- Toggle pulse, focus vessels and resize repeatedly without losing geometry or leaking contexts (Task 2/3).
+- Network/model failures must show recovery and unknown status, never fake successful risk (Task 2/3).
+- Narrow screens, keyboard dialogs and reduced motion remain usable (Task 2/3).
+
+### Task 1: Verify models, correct inputs and preserve complete supplied anatomy
+**Files:** backend/cardio/service/feature_service.py; backend/cardio/schemas/patient_schema.py; backend/cardio/api/endpoints.py; backend/main.py; scripts/process_3d_heart.py; artifacts/heart_model_anatomy.json; frontend/public/heart_model_anatomy.json; testing/backend/; backend/requirements.txt or reproducibility constraints if needed; docs/MODEL_AND_ANATOMY_AUDIT.md; .gitignore.
+**Interfaces:** Keep prediction and sample API response shapes. Anatomy keeps metadata and structures lad/lcx/rca/myocardium, optional additional structures supported by future UI, source filenames in metadata. Existing bundle feature order is binding. Backend /api/v1/health must truthfully report model readiness for frontend status.
+- [ ] Create .venv with Python 3.11 (uv available), inspect installed bundle version metadata and use compatible packages. Do not retrain or overwrite weights. Establish inference baseline and inspect model types, feature count, dataset counts, NaNs and source meshes; do not expose patient rows in logs.
+- [ ] Add focused regression tests showing numeric/text categorical equality, computed BMI retained in feature vector, LVH and Poor R Progression included after encoding, and sample patient round trips. Run tests before fix to demonstrate relevant failures.
+- [ ] Correct shared cleaning to accept supported text and numeric values consistently; reject invalid category values at schema boundary, enforce binary/category ranges, compute omitted BMI, preserve exact feature order. Fix error swallowing by logging and rolling back failed persistence. Make health readiness truthful without breaking healthy status for working service. Keep handling minimal.
+- [ ] Inspect ZIP names and generate all relevant supplied myocardial chamber walls/auricles/septa, correctly separated LAD/LCX/RCA arteries (right marginal belongs to RCA), and include other supplied useful anatomical surfaces only if supported by documented structure keys. Remove arbitrary every-other-file selection. Validate finite coordinates and in-range triangle indices, deterministic output, shared transform and API/static asset equality. Avoid adding unrelated internal structures that obscure external heart silhouette; document selection rules and omissions.
+- [ ] Audit saved benchmark vs model calibration, independent XGBoost explanations, limitations and asset provenance in docs/MODEL_AND_ANATOMY_AUDIT.md. Record exact dependency versions that successfully deserialize the bundle. Fix misleading README/docs statements in touched areas. Do not perform medical research or invent source licensing claims.
+- [ ] Run isolated database backend suite and asset checks, document all results, commit. Report runtime path/start command and anatomy structure contract for UI task.
+
+### Task 2: Redesign entire interface and rebuild anatomical viewer
+**Files:** frontend/src/**, frontend/index.html, frontend/package.json and lock, frontend/vite.config.ts as needed. Do not change backend model contract.
+**Interfaces:** Consume existing apiService/prediction/sample/benchmark data and Task 1 anatomy structures, metadata and readiness. Keep endpoint URLs. HeartViewer3D may keep or simplify internal component contract; all callers must be updated together.
+**Design constraints:** Warm ivory (#F5F3EE), charcoal (#202420), accent coral (#B74435), dark anatomical stage (#121918), Geist typography with system fallback. Artistic asymmetry hero using real live anatomical heart, max-w-6xl headline in 2-3 lines; retain product name CardioVision. Four risk cards form complete dense 4/2/1 grid. Real sample case carousel (no testimonials), inline anatomy imagery using supplied asset imagery where useful, keyboard accessible vessel accordion. GSAP card stacking and desktop scroll pinning via @gsap/react/ScrollTrigger, reduced motion disables motion and mobile disables pinning. Large section rhythm on editorial areas, efficient form spacing. No stamp badges, section-number labels, fake data or stock imagery.
+- [ ] Inspect every existing component and redesign the whole interface: navigation/layout, dashboard, form, risk cards, explanations, benchmark modal, anatomy guide. Preserve capabilities and make dialogs accessible (focus trap/return, Escape, labelled heading). All buttons have actual functions. Provide visible backend state and retryable loading/error states.
+- [ ] Build a premium wide hero/assessment composition with the anatomical viewer as primary visual. Form categories organized clearly; native validation; show full patient inputs in sensible groups. Sample data normalized for controls. Recompute BMI when weight/height change, treat results as stale when inputs change, no automatic persisted fake patient inference on page load. Offer explicit sample selection and assessment submission. Prevent stale/out-of-order responses.
+- [ ] Rebuild viewer with one stable Three.js scene, OrbitControls from installed three, ResizeObserver, full cleanup of geometries/materials/controls/animation. Changes in pulse/focus/colors/opacity update existing scene without recreation. Load complete supplied surface geometry, compute normals, use realistic tissue shading and directional/hemi lighting. Keep coronary trees visible with anatomy/risk modes, vessel legend, focus/reset, opacity/visibility and heartbeat toggle. Fit camera to bounding box. Touch support; no React setState on every animation frame. Handle WebGL unavailability gracefully. Illustrative motion must preserve registration; unknown predictions must use neutral/anatomy colors.
+- [ ] Add gsap/@gsap/react dependencies and implement the chosen motion restrained for assessment usability; clean up ScrollTriggers, honor prefers-reduced-motion. Scope styles instead of massive global overrides. Real case carousel and vessel accordion use actual data; explanatory copy accurately labels surrogate SHAP and uncalibrated CV evidence.
+- [ ] Run npm run build; add focused automated checks for input/sample normalization and viewer lifecycle where feasible. Start frontend/backend from this worktree and inspect desktop/mobile in browser using available tools. Commit and report test evidence, browser URL and any remaining limitations.
+
+### Task 3: End-to-end verification and delivery polish
+**Files:** testing or frontend test scripts as needed, deploy/scripts/start.sh, README.md, docs/verification.md; small integration fixes in owning files when observed.
+**Interfaces:** Completed UI/API/anatomy contracts from Tasks 1/2. Use .venv and local frontend scripts.
+- [ ] Verify real API health, all three samples, prediction payloads, nonempty SHAP, finite risk probabilities and assessment history against isolated DB. Confirm sample text/numeric round trips and asset source equality remain correct.
+- [ ] Browser verification at desktop and 390px mobile: load actual heart, orbit/zoom/reset, pulse toggle repeated, all vessel focus controls, anatomy/risk coloring, transparency, sample carousel, input edit/stale state, submit, benchmark dialog, anatomy dialog, keyboard close/focus return. Check console/network failures and horizontal overflow. Capture screenshots to docs or ignored verification artifacts.
+- [ ] Check reduced motion and backend-unavailable retry. Add a small maintainable regression smoke script if browser automation available; do not install a heavy framework solely for screenshots. Fix concrete integration failures and rerun their checks.
+- [ ] Make local startup use project venv and predictable dependencies, cleanup child processes, document reproducible run/test commands, source anatomy limitations and truthful model evidence. Run final frontend build/backend tests. Commit and report results including any unverified behavior precisely.

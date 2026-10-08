@@ -1,0 +1,59 @@
+{
+  "verified_at": "2026-10-08T06:02:11.443250+00:00",
+  "base_url": "http://127.0.0.1:8001/api/v1",
+  "models_ready": true,
+  "asset_source_equal": true,
+  "vertices": 95363,
+  "triangles": 171186,
+  "cases": [
+    {
+      "case": "PATIENT-1016",
+      "probability_percent": {
+        "CAD": 95.8,
+        "LAD": 86.6,
+        "LCX": 76.0,
+        "RCA": 83.2
+      },
+      "shap_counts": {
+        "CAD": 8,
+        "LAD": 8,
+        "LCX": 8,
+        "RCA": 8
+      },
+      "numeric_text_equal": true
+    },
+    {
+      "case": "PATIENT-1001",
+      "probability_percent": {
+        "CAD": 89.5,
+        "LAD": 69.2,
+        "LCX": 23.0,
+        "RCA": 50.9
+      },
+      "shap_counts": {
+        "CAD": 8,
+        "LAD": 8,
+        "LCX": 8,
+        "RCA": 8
+      },
+      "numeric_text_equal": true
+    },
+    {
+      "case": "PATIENT-1002",
+      "probability_percent": {
+        "CAD": 97.1,
+        "LAD": 93.8,
+        "LCX": 77.2,
+        "RCA": 34.2
+      },
+      "shap_counts": {
+        "CAD": 8,
+        "LAD": 8,
+        "LCX": 8,
+        "RCA": 8
+      },
+      "numeric_text_equal": true
+    }
+  ],
+  "history_persistence": true
+}

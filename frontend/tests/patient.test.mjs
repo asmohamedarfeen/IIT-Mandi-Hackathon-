@@ -91,3 +91,13 @@ test("recorded vessel labels represent the real three multivessel cases", () => 
     "LAD + LCX",
   );
 });
+
+test("category aliases never cross fields and numeric codes must be valid indexes", () => {
+  for (const [key, value] of [
+    ["BBB", "Male"], ["Sex", "Severe"], ["VHD", "RBBB"],
+    ["DM", "Female"], ["Function Class", "Y"], ["Region RWMA", "Mild"],
+    ["Sex", 3], ["BBB", -1], ["VHD", 1.5], ["DM", ""],
+  ]) assert.ok(Number.isNaN(normalizePatient({ [key]: value })[key]), `${key}: ${value}`);
+  assert.equal(normalizePatient({ BBB: "N", VHD: "N" }).BBB, 0);
+  assert.equal(normalizePatient({ BBB: "N", VHD: "N" }).VHD, 0);
+});

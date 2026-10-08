@@ -196,26 +196,22 @@ export function normalizePatient(
       // Sample responses also contain engineered features; send only raw inputs.
       const value = raw[field.key] ?? output[field.key];
       if (field.options) {
-        const labels: Record<string, number> = {
-          n: 0,
-          y: 1,
-          no: 0,
-          yes: 1,
-          male: 1,
-          female: 0,
-          fmale: 0,
-          lbbb: 1,
-          rbbb: 2,
-          mild: 1,
-          moderate: 2,
-          severe: 3,
-        };
+        const aliases: Record<string, number> =
+          field.key === "Sex"
+            ? { fmale: 0 }
+            : field.key === "BBB" || field.key === "VHD"
+              ? { n: 0 }
+              : field.options === yesNo
+                ? { n: 0, y: 1 }
+                : {};
         const text = String(value).trim().toLowerCase();
         const option = field.options.findIndex(
           (label) => label.toLowerCase() === text,
         );
-        output[field.key] =
-          option >= 0 ? option : (labels[text] ?? Number(value));
+        const index = option >= 0 ? option : (aliases[text] ?? (text ? Number(text) : NaN));
+        output[field.key] = Number.isInteger(index) && index >= 0 && index < field.options.length
+          ? index
+          : NaN;
       } else output[field.key] = Number(value);
     }
   output.BMI =

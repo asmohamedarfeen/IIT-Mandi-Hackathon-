@@ -4,6 +4,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RotateCcw, Maximize2, HeartPulse, Minus, Plus } from "lucide-react";
 import { ThreeDAnatomyPayload, PredictionResponse } from "../utils/types";
 import { VESSELS } from "../utils/vessels";
+import { toggleFullscreen } from "../utils/fullscreen";
 import {
   createAnatomyMeshes,
   updateAnatomyMeshes,
@@ -43,7 +44,9 @@ export function HeartViewer3D({
     [focus, setFocus] = useState<Vessel | null>(null),
     [webglError, setWebglError] = useState(false),
     [attempt, setAttempt] = useState(0),
-    [reduced, setReduced] = useState(false);
+    [reduced, setReduced] = useState(false),
+    [fullscreenMessage, setFullscreenMessage] = useState<string | null>(null),
+    [fullscreen, setFullscreen] = useState(false);
   useEffect(() => {
     const query = matchMedia("(prefers-reduced-motion: reduce)");
     const change = () => setReduced(query.matches);
@@ -54,6 +57,11 @@ export function HeartViewer3D({
   useEffect(() => {
     pulseRef.current = pulse && !reduced;
   }, [pulse, reduced]);
+  useEffect(() => {
+    const change = () => setFullscreen(document.fullscreenElement === stage.current);
+    document.addEventListener("fullscreenchange", change);
+    return () => document.removeEventListener("fullscreenchange", change);
+  }, []);
   // Only new anatomy or an explicit recovery rebuilds the renderer. Controls and materials update in place.
   useEffect(() => {
     if (!host.current || !anatomyData) return;
@@ -276,10 +284,9 @@ export function HeartViewer3D({
           <Minus size={17} />
         </button>
         <button
-          aria-label="Expand heart viewer"
-          onClick={() => {
-            if (document.fullscreenElement) void document.exitFullscreen();
-            else void stage.current?.requestFullscreen().catch(() => {});
+          aria-label={fullscreen ? "Exit fullscreen heart viewer" : "Expand heart viewer"}
+          onClick={async () => {
+            setFullscreenMessage(await toggleFullscreen(stage.current, document));
           }}
         >
           <Maximize2 size={16} />
@@ -351,6 +358,7 @@ export function HeartViewer3D({
             Pulse {pulse && !reduced ? "on" : "off"}
           </button>
         </div>
+        {fullscreenMessage && <p className="stage-note" role="status">{fullscreenMessage}</p>}
         <p className="stage-note">
           {mode === "risk" && !prediction
             ? "Run a current assessment to see risk colors. "

@@ -1,7 +1,7 @@
 # IIT-Mandi-Hackathon - CardioVision AI
 ### 3D Cardiovascular Risk & Coronary Artery Stenosis Visualization
 
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.11](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com)
 [![React 18](https://img.shields.io/badge/React-18.3-61DAFB.svg)](https://reactjs.org/)
 [![Three.js](https://img.shields.io/badge/Three.js-WebGL-black.svg)](https://threejs.org/)
@@ -17,8 +17,8 @@ CardioVision AI is an experimental machine learning and 3D visualization tool. I
 - **Ensemble ML Architecture:** Supplied ten-fold metrics cover six candidates and an uncalibrated voting ensemble. The saved CAD ensemble ROC-AUC is 94.66%; those metrics do not measure the deployed calibrated models.
 - **Model Scores:** The saved models apply sigmoid calibration through five-fold cross-validation. Clinical calibration and external validation have not been established.
 - **TreeSHAP:** Contributions come from independently fitted XGBoost models. They do not exactly explain the calibrated voting ensembles.
-- **Interactive 3D Heart Viewer:** WebGL Three.js canvas dynamically color-codes coronary arteries (**Green <35%**, **Amber 35–65%**, **Red $\ge$ 65%**) with orbit controls, anatomical territory focus, and cardiac pulsation animation.
-- **Application Architecture:** Modular FastAPI backend adhering to `AGENT.md`, React 18 + TypeScript + Tailwind CSS frontend, SQLAlchemy persistence, and Docker multi-stage deployments.
+- **Interactive 3D Heart Viewer:** WebGL Three.js canvas dynamically color-codes coronary arteries (**Green <35%**, **Amber 35–<65%**, **Red $\ge$ 65%**) with orbit controls, anatomical territory focus, and illustrative uniform pulse animation.
+- **Application Architecture:** Modular FastAPI backend, React 18 + TypeScript + Tailwind CSS frontend, SQLAlchemy persistence, and Docker multi-stage deployments.
 
 ---
 
@@ -88,19 +88,30 @@ The saved benchmark reports ten stratified folds on 303 records. The training so
 ## Quickstart Guide
 
 ### 1. Prerequisites
-- Python 3.11+
-- Node.js 18+ & npm
+- Python 3.11
+- Node.js 24+ & npm (native TypeScript test support; verified on 24.7.0)
+- [uv](https://docs.astral.sh/uv/) for the project `.venv`
+- On macOS: `brew install libomp` for XGBoost/LightGBM
 
 ### 2. Run Locally
 
 ```bash
-# Clone the repository
-git clone <repo-url>
-cd iit-ma
-
-# Start full-stack application (Backend on :8000, Frontend on :5173)
+# From this repository root; defaults to backend :8000 and frontend :5173
 ./deploy/scripts/start.sh
+
+# Choose free ports and an isolated database when another checkout is running
+DATABASE_URL=sqlite:////tmp/cardiovision-preview.db \
+  BACKEND_PORT=8001 FRONTEND_PORT=5174 ./deploy/scripts/start.sh
 ```
+
+The script creates or checks a Python 3.11 `.venv`, installs exact backend versions
+with transitive constraints and frontend dependencies with `npm ci`, then migrates
+the selected database. It binds both services to `127.0.0.1`, sets the matching
+`VITE_API_BASE_URL`, rejects occupied ports without stopping existing servers, and
+stops both owned processes on Ctrl+C/termination or if either service exits.
+Models take several seconds to load; use **Recheck model service**, **Retry cases**,
+or **Retry evidence** if you open the app during backend startup. The default DB is
+`db/cardiovision.db`; use `DATABASE_URL` above for disposable verification data.
 
 Or run services individually:
 
@@ -124,8 +135,8 @@ Interactive Swagger documentation will be available at: [http://localhost:8000/d
 #### Frontend:
 ```bash
 cd frontend
-npm install
-npm run dev
+npm ci
+VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1 npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
 ```
 Dashboard will be available at: [http://localhost:5173](http://localhost:5173)
 
@@ -135,7 +146,7 @@ Dashboard will be available at: [http://localhost:5173](http://localhost:5173)
 
 ```bash
 cd deploy/docker
-docker-compose up --build
+docker compose up --build
 ```
 - Web Application: [http://localhost](http://localhost)
 - Backend API: [http://localhost:8000](http://localhost:8000)
@@ -152,6 +163,22 @@ docker-compose up --build
 Tests create a temporary isolated SQLite database before importing the application.
 The suite verifies input encoding, omitted BMI, saved feature definitions, all three
 example round trips, readiness, persistence rollback and deterministic geometry.
+
+```bash
+# Node.js 24+; patient normalization, fullscreen recovery, and real mesh lifecycle
+npm --prefix frontend test
+npm --prefix frontend run build
+
+# Live API smoke; explicitly writes six assessments from supplied examples
+# Run against an isolated database, using the API URL from your local startup
+.venv/bin/python scripts/verify_api.py --base-url http://127.0.0.1:8001/api/v1
+```
+
+See [verification evidence and screenshots](docs/verification.md) for the checked
+API scores, desktop/mobile interactions, recovery paths, and runtime limitations.
+The production Three.js/GSAP chunk remains around 785 kB minified (225 kB gzip);
+lazy loading remains a future performance improvement. Docker build/runtime was
+not verified in this environment because its daemon was unavailable.
 
 ---
 
@@ -173,4 +200,4 @@ To regenerate the 3D heart anatomical meshes from the raw BodyParts3D archive:
 
 ## Clinical Safety Disclaimer
 
-CardioVision AI is an experimental decision-support and 3D visualization research tool. Model predictions and 3D perfusion maps do not constitute diagnostic medical advice or replace formal coronary catheterization.
+CardioVision AI is an experimental decision-support and 3D visualization research tool. Model predictions and whole-vessel risk colors do not constitute diagnostic medical advice or replace formal coronary catheterization.

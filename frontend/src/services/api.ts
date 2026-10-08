@@ -8,10 +8,10 @@ import {
   PredictionResponse,
   SamplePatient,
   BenchmarkData,
-  ThreeDAnatomyPayload
-} from '../utils/types';
+  ThreeDAnatomyPayload,
+} from "../utils/types";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/v1";
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -34,9 +34,9 @@ export const apiService = {
    */
   async predictPatient(data: PatientData): Promise<PredictionResponse> {
     const response = await fetch(`${API_BASE_URL}/predict`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
     });
@@ -65,7 +65,7 @@ export const apiService = {
   async getHeartAnatomy(): Promise<ThreeDAnatomyPayload> {
     try {
       // First try local static public folder
-      const localRes = await fetch('/heart_model_anatomy.json');
+      const localRes = await fetch("/heart_model_anatomy.json");
       if (localRes.ok) {
         return (await localRes.json()) as ThreeDAnatomyPayload;
       }
@@ -79,8 +79,16 @@ export const apiService = {
   /**
    * Check backend service health.
    */
-  async checkHealth(): Promise<{ status: string; service: string }> {
+  async checkHealth(): Promise<{
+    status: string;
+    service: string;
+    models_ready: boolean;
+  }> {
     const response = await fetch(`${API_BASE_URL}/health`);
-    return handleResponse<{ status: string; service: string }>(response);
+    return handleResponse<{
+      status: string;
+      service: string;
+      models_ready: boolean;
+    }>(response);
   },
 };

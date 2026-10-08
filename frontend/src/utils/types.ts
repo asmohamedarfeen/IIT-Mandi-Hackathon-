@@ -75,7 +75,7 @@ export interface SHAPFeatureImpact {
   display_name: string;
   contribution: number;
   patient_value: any;
-  impact_direction: 'increases_risk' | 'decreases_risk';
+  impact_direction: "increases_risk" | "decreases_risk";
 }
 
 export interface PredictionResponse {
@@ -124,7 +124,10 @@ export interface ModelCVMetrics {
 
 export interface BenchmarkData {
   targets: Record<string, Record<string, ModelCVMetrics>>;
-  global_importances: Record<string, Array<{ feature: string; importance: number; mean_val: number }>>;
+  global_importances: Record<
+    string,
+    Array<{ feature: string; importance: number; mean_val: number }>
+  >;
 }
 
 export interface ThreeDStructureData {
@@ -144,5 +147,6 @@ export interface ThreeDAnatomyPayload {
     lcx: ThreeDStructureData;
     rca: ThreeDStructureData;
     myocardium: ThreeDStructureData;
+    left_main?: ThreeDStructureData;
   };
 }

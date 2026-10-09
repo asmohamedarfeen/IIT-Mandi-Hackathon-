@@ -21,6 +21,7 @@ from backend.core.config import settings
 from backend.core.logging import setup_logging, logger
 from backend.core.database import engine, Base
 from backend.cardio.routes import cardio_router
+from backend.model_quality.routes import router as model_quality_router
 from backend.cardio.constants import CLINICAL_SAFETY_DISCLAIMER
 from backend.cardio.dependencies import get_prediction_service
 
@@ -66,6 +67,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # Mount Cardio feature module routes
 app.include_router(cardio_router, prefix=settings.API_V1_PREFIX)
+app.include_router(model_quality_router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/health", tags=["Health"])

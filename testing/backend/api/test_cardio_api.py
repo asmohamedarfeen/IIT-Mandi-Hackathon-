@@ -104,10 +104,21 @@ def test_sample_round_trips_and_history(client):
         categorical = client.post('/api/v1/predict', json=text)
         assert categorical.status_code == 200
         a, b = numeric.json(), categorical.json()
+        # Each inference has its own provenance; clinical results stay identical.
+        assert a['evidence']['assessment_id'] != b['evidence']['assessment_id']
+        for response in (a, b):
+            response['evidence'].pop('assessment_id')
+            response['evidence'].pop('generated_at')
         assert a == b
         for risk in [a['overall_cad'], *a['vessels'].values()]:
             assert math.isfinite(risk['probability']) and 0 <= risk['probability'] <= 1
         assert all(a['shap_explanations'][target] for target in ['CAD', 'LAD', 'LCX', 'RCA'])
+        for impacts in a['shap_explanations'].values():
+            for impact in impacts:
+                assert impact['feature_kind'] in ['recorded', 'derived']
+                assert impact['source_measurements']
+                for source in impact['source_measurements']:
+                    assert source['recorded_value'] == a['evidence']['clinical_inputs'][source['input_key']]
     history = client.get('/api/v1/history').json()
     assert all(any(record['patient_identifier'] == sample['patient_id'] for record in history)
                for sample in client.get('/api/v1/sample-patients').json())
@@ -145,6 +156,7 @@ def test_failed_persistence_rolls_back_without_exposing_inputs(client, caplog):
         with caplog.at_level('ERROR'):
             response = client.post('/api/v1/predict', json={})
         assert response.status_code == 200
+        assert response.json()['evidence']['report_available'] is False
         repo.db.rollback.assert_called_once()
         assert 'Assessment persistence failed (RuntimeError)' in caplog.text
         assert 'private patient values' not in caplog.text

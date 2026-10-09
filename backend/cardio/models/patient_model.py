@@ -33,6 +33,8 @@ class PatientAssessment(Base):
     # Input payload and explanation snapshot
     clinical_inputs = Column(JSON, nullable=False)
     explanation_summary = Column(JSON, nullable=True)
+    assessment_uuid = Column(String(36), unique=True, index=True, nullable=True)
+    prediction_snapshot = Column(JSON, nullable=True)
     notes = Column(Text, nullable=True)
 
 

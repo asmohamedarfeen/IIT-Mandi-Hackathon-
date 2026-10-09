@@ -1,0 +1,53 @@
+# CardioVision AI - Track A Project Checklist & Verification Report
+
+## A. Prediction engine
+- [x] Predict overall CAD status.
+  - Verification: Implemented in `backend/cardio/service/prediction_service.py` using a calibrated soft-voting ensemble (`CalibratedClassifierCV` wrapping CatBoost, XGBoost, LightGBM, Random Forest, and Extra Trees). Outputs calibrated probability and categorical risk for overall CAD. Verified via backend test suite (`testing/backend/unit/test_prediction_service.py`).
+- [x] Predict LAD, LCX and RCA stenosis separately.
+  - Verification: Separate `CalibratedClassifierCV` models independently predict stenosis probability for Left Anterior Descending (LAD), Left Circumflex (LCX), and Right Coronary Artery (RCA) vessels (`backend/cardio/service/prediction_service.py`). Verified in unit tests and endpoint tests.
+- [x] Use demographic, clinical examination, ECG, laboratory and echocardiographic inputs available in the dataset.
+  - Verification: Feature pipeline in `backend/cardio/service/feature_service.py` ingests all categories from the 303-record Z-Alizadeh Sani dataset (demographics like Age/Sex/BMI, vitals like BP/PR, ECG flags like ST elevation/depression/T-inversion/Q-wave/BBB/LVH, laboratory values like lipid profile/FBS/CR/electrolytes/CBC, and echo findings like EF-TTE/RWMA/VHD).
+- [x] Prevent target leakage for all four targets.
+  - Verification: Target labels (`Cath`, `CAD`, `LAD`, `LCX`, `RCA`) are strictly defined in `LEAKAGE_COLUMNS` (`backend/cardio/constants.py`) and removed from feature matrix `X` before feature engineering and training (`backend/cardio/service/feature_service.py:prepare_training_data`).
+- [x] Compare baseline and stronger classifiers using reproducible validation.
+  - Verification: Stratified 10-fold cross-validation pipeline in `scripts/train_pipeline.py` compares baseline `LogisticRegression` against `RandomForest`, `ExtraTrees`, `XGBoost`, `LightGBM`, `CatBoost`, and `Soft-Voting Ensemble`. All metrics stored in `artifacts/benchmark_summary.json`.
+- [x] Report accuracy, precision, recall, F1-score and ROC-AUC for each target.
+  - Verification: `calculate_metrics()` in `scripts/train_pipeline.py` computes accuracy, precision, recall, F1-score, ROC-AUC (as well as specificity and MCC) across all 4 targets and models. Accessible via `/api/v1/benchmarks` and visualized in frontend `BenchmarkModal.tsx`.
+
+---
+
+## B. 3D anatomical visualization
+- [x] Render a real interactive 3D heart/torso model.
+  - Verification: WebGL/Three.js viewer in `frontend/src/components/HeartViewer3D.tsx` renders real anatomical meshes extracted from BodyParts3D FMA 3.2.1 (`BP51939_FMA3_2_1_inference_partof_FMA7088_Heart.zip`, 95,363 vertices and 171,186 triangles across 62 anatomical pieces).
+- [x] Identify the LAD, LCX and RCA correctly.
+  - Verification: Separate anatomical mesh structures for `lad`, `lcx`, and `rca` are parsed and identified in `frontend/src/utils/anatomy.ts` and `frontend/src/utils/vessels.ts` with correct anatomical descriptions and targeted camera framing (`focusVessel`).
+- [x] Color-code each artery using its own prediction probability.
+  - Verification: Predictions dynamically map vessel probabilities to color codes (Green <35%, Amber 35%–<65%, Red >=65%) via `vessel_colors_3d` in `backend/cardio/service/prediction_service.py` and rendered as material/emissive colors in `frontend/src/utils/anatomy.ts:updateAnatomyMeshes`.
+- [x] Support rotation, zoom and selection of individual vessels.
+  - Verification: Three.js `OrbitControls` supports mouse/touch rotation, scroll wheel and +/- button zooming, and individual vessel focus/isolate buttons (`LAD`, `LCX`, `RCA`) with inspection overlays (`frontend/src/components/HeartViewer3D.tsx`).
+- [x] Keep the visual state synchronized with the latest inference.
+  - Verification: React state synchronizes with `PredictionResponse`. Modifying patient form inputs marks the visual state as stale to prevent misleading interpretations until re-assessed (`frontend/src/pages/DashboardPage.tsx`).
+
+---
+
+## C. Clinical dashboard
+- [x] Show overall CAD status and all three vessel probabilities.
+  - Verification: `frontend/src/components/RiskSummaryCards.tsx` presents CAD, LAD, LCX, and RCA probability percentages, categorical risk bands, and colored risk progress meters.
+- [x] Show patient physiological measurements.
+  - Verification: `frontend/src/components/PatientForm.tsx` organizes physiological measurements into structured collapsible sections (Profile, History & Risk Factors, Vitals & Physical Exam, Symptoms, ECG, Labs, Echo) allowing display and editing of all patient vitals and biomarkers.
+- [x] Explain the current prediction using SHAP or another appropriate interpretation method.
+  - Verification: `backend/cardio/service/prediction_service.py` uses TreeSHAP (`shap.TreeExplainer`) on independent surrogate models to compute patient-level attributions. Rendered as interactive contribution charts in `frontend/src/components/SHAPExplanationChart.tsx`.
+- [x] Show a visible educational/decision-support disclaimer.
+  - Verification: Persistent visible disclaimers are presented in the application footer ("Research MVP · Experimental estimates, not a diagnosis"), under prediction results ("Model probabilities are experimental estimates..."), within the Anatomy and Benchmark guide modals, and returned via API responses (`CLINICAL_SAFETY_DISCLAIMER`).
+
+---
+
+## D. Engineering and deliverables
+- [x] Connect the web frontend to the trained model through an inference API.
+  - Verification: Frontend client in `frontend/src/services/api.ts` connects to FastAPI backend endpoints (`POST /api/v1/predict`, `GET /api/v1/benchmarks`, `GET /api/v1/sample-patients`, `GET /api/v1/3d-anatomy`, `GET /api/v1/health`) via Vite development proxy and production Nginx reverse proxy.
+- [x] Provide a working new-patient input workflow.
+  - Verification: End-to-end interactive workflow in `frontend/src/components/PatientForm.tsx` and `DashboardPage.tsx` allows entering new patient values, loading sample cohort cases, submitting assessment requests, and viewing immediate real-time updates.
+- [x] Validate and normalize input data consistently with model training.
+  - Verification: Pydantic schema in `backend/cardio/schemas/patient_schema.py` and `feature_service.py` validate field boundaries, normalize text aliases ('Male'/'Female', 'Y'/'N', 'LBBB'/'RBBB'), derive missing BMI, and enforce exact alignment with 84 training feature vectors. Validated by 14 backend unit tests in `test_input_contract.py`.
+- [x] Provide reproducible training code, saved model artifacts and setup instructions.
+  - Verification: Full reproducible pipeline in `scripts/train_pipeline.py`, serialized model weights and geometry in `artifacts/`, and step-by-step setup and test instructions documented in `README.md`.

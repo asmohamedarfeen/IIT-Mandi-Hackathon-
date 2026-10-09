@@ -76,6 +76,10 @@ export interface SHAPFeatureImpact {
   contribution: number;
   patient_value: any;
   impact_direction: "increases_risk" | "decreases_risk";
+  feature_kind?: "recorded" | "derived" | "unmapped";
+  model_input_value?: number;
+  source_measurements?: Array<{ input_key: string; recorded_value: unknown }>;
+  derivation?: string | null;
 }
 
 export interface PredictionResponse {
@@ -99,6 +103,24 @@ export interface PredictionResponse {
     RCA: SHAPFeatureImpact[];
   };
   disclaimer: string;
+  evidence?: PredictionEvidence;
+}
+
+export type Vessel = "lad" | "lcx" | "rca";
+export type CoronaryTarget = "LAD" | "LCX" | "RCA";
+
+export interface PredictionEvidence {
+  assessment_id: string;
+  generated_at: string;
+  clinical_inputs: Record<string, unknown>;
+  prediction_model: string;
+  explanation_model: string;
+  confidence_interval: number[] | null;
+  limitations: string[];
+  application_version?: string;
+  model_artifact_sha256?: string | null;
+  validation_summary?: Record<string, unknown>;
+  report_available?: boolean;
 }
 
 export interface SamplePatient {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import {
   ArrowUpRight,
   ArrowLeft,
@@ -8,7 +8,12 @@ import {
 import { HeartViewer3D } from "../components/HeartViewer3D";
 import { RiskSummaryCards } from "../components/RiskSummaryCards";
 import { PatientForm } from "../components/PatientForm";
+import { CoronaryEvidencePanel } from "../components/CoronaryEvidencePanel";
 import { SHAPExplanationChart } from "../components/SHAPExplanationChart";
+import { EvidenceReportDownload } from "../components/EvidenceReportDownload";
+import { createAssessmentRunner } from "../utils/assessment";
+import { rankedVessels } from "../utils/risk";
+import { focusMeasurement } from "../utils/measurementNavigation";
 import { apiService } from "../services/api";
 import {
   DEFAULT_PATIENT,
@@ -20,10 +25,16 @@ import {
   PredictionResponse,
   SamplePatient,
   ThreeDAnatomyPayload,
+  Vessel,
 } from "../utils/types";
-export function DashboardPage() {
-  const revision = useRef(0),
-    request = useRef(0);
+export function DashboardPage({ active = true }: { active?: boolean }) {
+  const activeRef = useRef(active);
+  activeRef.current = active;
+  const formHost = useRef<HTMLDivElement>(null);
+  const viewInput = useCallback((inputKey: string) => {
+    return Boolean(formHost.current && focusMeasurement(formHost.current, inputKey, matchMedia("(prefers-reduced-motion: reduce)").matches));
+  }, []);
+  const [selectedVessel, setSelectedVessel] = useState<Vessel | null>(null);
   const [patient, setPatient] = useState(() =>
     normalizePatient(DEFAULT_PATIENT),
   );
@@ -47,6 +58,24 @@ export function DashboardPage() {
       .then((h) => setHealth(h.models_ready ? "ready" : "unavailable"))
       .catch(() => setHealth("unavailable"));
   }, []);
+  const assessment = useMemo(() => createAssessmentRunner(apiService.predictPatient, {
+    onStart: () => { setBusy(true); setError(""); setStale(true); },
+    onResult: (result, automatic) => {
+      setPrediction(result);
+      setStale(false);
+      setHealth("ready");
+      setSelectedVessel(current => current ?? rankedVessels(result)[0]?.key ?? "lad");
+      if (!automatic && activeRef.current) document.querySelector("#results")?.scrollIntoView({
+        behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        block: "start",
+      });
+    },
+    onError: () => {
+      setError("The assessment could not be completed. Check the model service, review the inputs, and try again.");
+      checkHealth();
+    },
+    onFinish: () => setBusy(false),
+  }), [checkHealth]);
   const loadAnatomy = useCallback(() => {
     setAnatomyError(false);
     apiService
@@ -66,17 +95,19 @@ export function DashboardPage() {
     loadAnatomy();
     loadSamples();
     return () => {
-      request.current++;
+      assessment.dispose();
     };
-  }, [checkHealth, loadAnatomy, loadSamples]);
+  }, [checkHealth, loadAnatomy, loadSamples, assessment]);
   function changePatient(next: PatientData) {
-    revision.current++;
-    request.current++;
+    assessment.invalidate();
     setBusy(false);
     setPatient(next);
     setStale(Boolean(prediction));
     setError("");
     setSelectedSample("");
+    if (prediction && health === "ready") {
+      assessment.schedule(next, () => Boolean(formHost.current?.querySelector("form")?.checkValidity()));
+    }
   }
   function selectSample(sample: SamplePatient) {
     changePatient(normalizePatient(sample.features, sample.patient_id));
@@ -87,35 +118,6 @@ export function DashboardPage() {
         : "smooth",
       block: "start",
     });
-  }
-  async function assess(data: PatientData) {
-    const token = ++request.current,
-      currentRevision = revision.current;
-    setBusy(true);
-    setError("");
-    try {
-      const result = await apiService.predictPatient(data);
-      if (token !== request.current || revision.current !== currentRevision)
-        return;
-      setPrediction(result);
-      setStale(false);
-      setHealth("ready");
-      document.querySelector("#results")?.scrollIntoView({
-        behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
-          ? "auto"
-          : "smooth",
-        block: "start",
-      });
-    } catch {
-      if (token === request.current) {
-        setError(
-          "The assessment could not be completed. Check the model service, review the inputs, and try again.",
-        );
-        checkHealth();
-      }
-    } finally {
-      if (token === request.current) setBusy(false);
-    }
   }
   const sample = samples[sampleIndex];
   return (
@@ -222,7 +224,7 @@ export function DashboardPage() {
           </div>
         </div>
         <div className="workspace-grid">
-          <div id="patient-inputs">
+          <div id="patient-inputs" ref={formHost}>
             {selectedSample && (
               <div className="loaded-case" role="status">
                 {selectedSample} loaded. Review the inputs before assessing.
@@ -231,9 +233,10 @@ export function DashboardPage() {
             <PatientForm
               patientData={patient}
               onChange={changePatient}
-              onSubmit={assess}
+              onSubmit={assessment.run}
               isLoading={busy}
               ready={health === "ready"}
+              hasAssessment={Boolean(prediction)}
             />
             {error && (
               <div className="error-message" role="alert">
@@ -245,10 +248,14 @@ export function DashboardPage() {
             )}
           </div>
           <HeartViewer3D
+            active={active}
             anatomyData={anatomy}
             prediction={stale ? null : prediction}
+            stale={stale}
             error={anatomyError}
             onRetry={loadAnatomy}
+            selectedVessel={selectedVessel}
+            onSelectVessel={setSelectedVessel}
           />
         </div>
         <div id="results" className="results-header">
@@ -257,19 +264,21 @@ export function DashboardPage() {
             {busy
               ? "Assessment in progress…"
               : stale
-                ? "Inputs changed. Run a new assessment to update these results."
+                ? "Inputs changed. Valid edits update automatically; review invalid fields or retry the assessment."
                 : prediction
                   ? `Assessment complete · ${prediction.patient_id}`
                   : "Complete the form to generate model estimates."}
           </p>
         </div>
-        <RiskSummaryCards prediction={prediction} stale={stale} />
+        <EvidenceReportDownload prediction={prediction} stale={stale} busy={busy} />
+        <RiskSummaryCards prediction={prediction} stale={stale} selectedVessel={selectedVessel} onSelectVessel={setSelectedVessel} />
         <p className="result-caveat">
           Model probabilities are experimental estimates. Risk colors indicate
           whole-vessel output, not the location or severity of a lesion.
         </p>
       </section>
-      {prediction && <SHAPExplanationChart prediction={prediction} stale={stale} />}
+      <CoronaryEvidencePanel prediction={prediction} selected={selectedVessel} onSelect={setSelectedVessel} stale={stale} busy={busy} onViewInput={viewInput} />
+      {prediction && <SHAPExplanationChart prediction={prediction} stale={stale} target="CAD" onViewInput={viewInput} />}
     </div>
   );
 }

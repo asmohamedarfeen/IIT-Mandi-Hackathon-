@@ -8,22 +8,28 @@ export function MainLayout({
   benchmarkData,
   onRetry,
   loading,
+  workspace = "assessment",
+  onWorkspaceChange,
 }: {
   children: ReactNode;
   benchmarkData: BenchmarkData | null;
   onRetry: () => void;
   loading: boolean;
+  workspace?: "assessment" | "quality";
+  onWorkspaceChange?: (workspace:"assessment"|"quality")=>void;
 }) {
   const [benchmarks, setBenchmarks] = useState(false),
     [anatomy, setAnatomy] = useState(false);
   return (
     <div className="cardiovision" id="top">
-      <a href="#assessment" className="skip-link">
-        Skip to assessment
+      <a href={workspace==="assessment"?"#assessment":"#model-quality-lab"} className="skip-link">
+        Skip to {workspace==="assessment"?"assessment":"Model Quality Lab"}
       </a>
       <Header
         onOpenBenchmarks={() => setBenchmarks(true)}
         onOpenAnatomyInfo={() => setAnatomy(true)}
+        workspace={workspace}
+        onWorkspaceChange={onWorkspaceChange}
       />
       <main>{children}</main>
       <footer className="site-footer">

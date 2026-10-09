@@ -13,6 +13,9 @@ CardioVision AI is an experimental machine learning and 3D visualization tool. I
 
 ## Key Highlights
 
+- **What Drives This Prediction?:** Expand a ranked patient-specific factor to inspect its signed XGBoost SHAP contribution, assessed value and model encoding. Calculated factors explain their derivation and list their original measurements. Source links open and focus the matching patient input without editing it; changing an input hides stale details until reassessment completes.
+- **Coronary Evidence-to-Anatomy:** Select LAD, LCX or RCA using the 3D surface, vessel controls, result cards or evidence tabs. The linked evidence panel shows its probability, assessed clinical inputs, signed SHAP factors, model limitations and exact mesh color source. Each inference includes a unique assessment ID and UTC timestamp. Confidence intervals are unavailable in the supplied bundle.
+- **Automatic Reassessment:** After the first assessment, valid input edits rerun inference after a 700 ms pause. Superseded requests are cancelled, late responses ignored, and stale evidence hidden until all views can update together. Assessment inputs and outputs continue to be saved by the existing prediction endpoint.
 - **Leak-Free Multi-Task Prediction:** Strictly excludes catheterization outcome variables (`Cath`, `CAD`, `LAD`, `LCX`, `RCA`) from the predictor space while evaluating four independent targets.
 - **Ensemble ML Architecture:** Supplied ten-fold metrics cover six candidates and an uncalibrated voting ensemble. The saved CAD ensemble ROC-AUC is 94.66%; those metrics do not measure the deployed calibrated models.
 - **Model Scores:** The saved models apply sigmoid calibration through five-fold cross-validation. Clinical calibration and external validation have not been established.
@@ -201,3 +204,73 @@ To regenerate the 3D heart anatomical meshes from the raw BodyParts3D archive:
 ## Clinical Safety Disclaimer
 
 CardioVision AI is an experimental decision-support and 3D visualization research tool. Model predictions and whole-vessel risk colors do not constitute diagnostic medical advice or replace formal coronary catheterization.
+
+## Model Quality Lab
+
+Select **Model Quality Lab** in the application header. The assessment workspace stays
+mounted so switching back preserves patient inputs and the heart view. The Lab reads
+saved evaluation artifacts only; neither opening it nor downloading reports trains models.
+
+Generate real evidence offline:
+
+```bash
+.venv/bin/python scripts/evaluate_model_quality.py
+.venv/bin/python scripts/evaluate_model_quality.py --verify
+```
+
+The evaluator uses the supplied workbook, the deployed bundle's exact 84-feature
+contract, ten stratified outer folds and five inner calibration folds. All learned
+preprocessing stays inside each fit. It compares eight fixed individual classifiers,
+voting and sigmoid-calibrated voting across CAD, LAD, LCX and RCA. Stacking is not
+implemented and is not shown as an evaluated model. Temporary fitted clones are
+fingerprinted and discarded; deployed weights and historical benchmarks are protected.
+
+Runs are immutable directories under `artifacts/model_quality/runs/`; publication
+atomically updates `current.json`. Public summaries contain aggregate evidence. Private
+`oof.json` files contain row-level labels/probabilities and held-out explanation audit
+data; do not publish the artifact directory as static assets. The API checks fingerprints,
+recomputes evidence against OOF records on cache fill, and caches validated snapshots.
+Downloads bind to the visible run and reject a changed run with HTTP 409.
+
+APIs live under `/api/v1/model-quality`: overview, models, cad/lad/lcx/rca,
+confusion-matrix, calibration, roc, pr, shap, feature-stability, class-distribution,
+reproducibility and report. The download center exports PDF, aggregate JSON and CSV
+evidence. Arbitrary threshold confusion counts are computed from stored OOF probabilities,
+not interpolated. Undefined metrics and empty calibration bins remain explicitly unavailable.
+
+Provenance records dataset/model/source hashes, archived source, git state, dependency
+versions, parameters, seeds and fold partitions. Historical training timestamps were not
+supplied and are not invented. SHAP and permutation stability explain an independent
+held-out XGBoost classifier, **not the voting ensemble**. Cross-validation is internal
+cohort evidence with historical model-selection bias, not external clinical validation.
+The retained legacy production-training script still needs a separate validation review
+before retraining; the Lab does not reuse its pre-CV imputation behavior.
+
+See [architecture audit](docs/model-quality-architecture-audit.md) and
+[implementation plan](docs/superpowers/plans/2026-10-09-model-quality-lab.md).
+
+## One-click evidence reports
+
+After a saved assessment completes, choose **Download evidence report** on the dashboard.
+The PDF includes assessed measurements, all four predictions, vessel territory/color
+sources, ranked signed factors with their original measurements, application version,
+model artifact SHA-256, supplied validation metrics and limitations. It uses the stored
+assessment snapshot: downloading does not rerun inference or use later form edits.
+Stale, pending or unsaved assessments cannot be downloaded. Older history entries
+without snapshots require a new assessment; reports are not retroactively fabricated.
+
+For an existing installation, install backend requirements and run
+`.venv/bin/alembic upgrade head` before restarting the backend. The migration adds
+nullable snapshot columns and preserves existing records.
+
+The download endpoint is `GET /api/v1/assessments/{assessment_id}/report`.
+Reports contain confidential inputs. The current prototype has no authentication;
+do not expose it publicly with real patient data. The supplied cross-validation
+benchmarks concern uncalibrated models and are explicitly not validation of the
+deployed calibrated ensemble.
+
+To generate a synthetic PDF for layout checks without database writes:
+
+```bash
+.venv/bin/python scripts/verify_evidence_report.py
+```

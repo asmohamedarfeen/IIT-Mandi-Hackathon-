@@ -2,7 +2,7 @@
 Pydantic schemas for multi-target risk predictions, calibrated probabilities, and SHAP explanations.
 """
 
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Literal
 from pydantic import BaseModel, Field
 
 
@@ -15,12 +15,38 @@ class VesselRiskInfo(BaseModel):
     anatomical_description: str = Field(..., description="Clinical description of vascular territory")
 
 
-class SHAPFeatureImpact(BaseModel):
+class SourceMeasurement(BaseModel):
+    input_key: str
+    recorded_value: Any
+
+
+class FeatureLineage(BaseModel):
+    feature_kind: Literal["recorded", "derived", "unmapped"]
+    model_input_value: float
+    source_measurements: List[SourceMeasurement]
+    derivation: Optional[str] = None
+
+
+class SHAPFeatureImpact(FeatureLineage):
     feature: str = Field(..., description="Feature column name")
     display_name: str = Field(..., description="User-friendly clinical label")
     contribution: float = Field(..., description="Independent XGBoost SHAP contribution in log-odds; not an ensemble probability contribution")
-    patient_value: Any = Field(..., description="The patient's recorded value")
+    patient_value: Any = Field(..., description="Rounded aligned feature value; calculated features are not raw measurements")
     impact_direction: str = Field(..., description="'increases_risk' or 'decreases_risk'")
+
+
+class PredictionEvidence(BaseModel):
+    assessment_id: str
+    generated_at: str = Field(..., description="UTC timestamp for this inference")
+    clinical_inputs: Dict[str, Any] = Field(..., description="Validated raw input snapshot used for this inference")
+    prediction_model: str
+    explanation_model: str
+    confidence_interval: Optional[List[float]] = Field(None, description="Unavailable for the supplied model bundle")
+    limitations: List[str]
+    application_version: str = "Unavailable"
+    model_artifact_sha256: Optional[str] = None
+    validation_summary: Dict[str, Any] = Field(default_factory=dict)
+    report_available: bool = False
 
 
 class PredictionResponse(BaseModel):
@@ -32,6 +58,7 @@ class PredictionResponse(BaseModel):
         ..., description="Top contributing clinical features for CAD and each coronary vessel"
     )
     disclaimer: str = Field(..., description="Clinical safety statement")
+    evidence: PredictionEvidence
 
 
 class ModelMetrics(BaseModel):

@@ -1,5 +1,12 @@
 import * as THREE from "three";
-import type { ThreeDAnatomyPayload, PredictionResponse } from "./types";
+import type { ThreeDAnatomyPayload, PredictionResponse, Vessel } from "./types";
+
+export function pickCoronaryVessel(raycaster: THREE.Raycaster, meshes: Record<string, THREE.Mesh>): Vessel | null {
+  const vessels = Object.entries(meshes)
+    .filter(([key, mesh]) => ["lad", "lcx", "rca"].includes(key) && mesh.visible)
+    .map(([, mesh]) => mesh);
+  return (raycaster.intersectObjects(vessels, false)[0]?.object.name as Vessel) || null;
+}
 
 export type AnatomyMesh = THREE.Mesh<
   THREE.BufferGeometry,
@@ -67,8 +74,9 @@ export function updateAnatomyMeshes(
   const transparency = Math.max(0, Math.min(1, 1 - opacity));
 
   for (const [name, mesh] of Object.entries(meshes)) {
+    const isolated = mode === "risk" && focus !== null;
+    mesh.visible = isolated ? name === focus : name !== "myocardium" || visible;
     if (name === "myocardium") {
-      mesh.visible = visible;
       mesh.material.opacity = opacity;
       mesh.material.transparent = opacity < 1;
       mesh.material.depthWrite = opacity === 1;
@@ -83,12 +91,12 @@ export function updateAnatomyMeshes(
       const risk = vessel ? prediction?.vessel_colors_3d[vessel] : undefined;
       // The left main has no model target. Missing/currently stale results use anatomy colors.
       const color =
-        mode === "risk" && risk
-          ? risk
+        mode === "risk"
+          ? risk || "#94a3b8"
           : ANATOMY_COLORS[name] || ANATOMY_COLORS.left_main;
       mesh.material.color.set(color);
       mesh.material.emissive.set(color);
-      mesh.material.emissiveIntensity = focus === name ? 0.14 : 0.02;
+      mesh.material.emissiveIntensity = focus === name ? 0.3 : mode === "risk" && risk ? 0.18 : 0.02;
       mesh.material.opacity =
         focus && focus !== name && name !== "left_main" ? 0.3 : 1;
       mesh.material.transparent = mesh.material.opacity < 1;

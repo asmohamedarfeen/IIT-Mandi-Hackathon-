@@ -6,7 +6,26 @@ import {
   createAnatomyMeshes,
   updateAnatomyMeshes,
   disposeAnatomyMeshes,
+  pickCoronaryVessel,
 } from "../src/utils/anatomy.ts";
+
+test("mesh picking selects visible coronary surfaces and ignores neutral anatomy", () => {
+  const make = (name, z) => {
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
+    mesh.name = name;
+    mesh.position.z = z;
+    mesh.updateMatrixWorld();
+    return mesh;
+  };
+  const meshes = { myocardium: make("myocardium", 3), left_main: make("left_main", 2), lad: make("lad", 1), lcx: make("lcx", 0) };
+  const ray = new THREE.Raycaster(new THREE.Vector3(0, 0, 5), new THREE.Vector3(0, 0, -1));
+  assert.equal(pickCoronaryVessel(ray, meshes), "lad");
+  meshes.lad.visible = false;
+  assert.equal(pickCoronaryVessel(ray, meshes), "lcx");
+  meshes.lcx.visible = false;
+  assert.equal(pickCoronaryVessel(ray, meshes), null);
+  for (const mesh of Object.values(meshes)) { mesh.geometry.dispose(); mesh.material.dispose(); }
+});
 const anatomy = JSON.parse(
   await readFile(
     new URL("../public/heart_model_anatomy.json", import.meta.url),
@@ -75,7 +94,7 @@ test("risk, focus, tissue opacity and visibility update the existing resources; 
   assert.equal(meshes.myocardium.material.opacity, 0.45);
   assert.equal(meshes.myocardium.visible, false);
   assert.equal(meshes.myocardium.material.depthWrite, false);
-  assert.equal(meshes.left_main.material.color.getHexString(), "731616");
+  assert.equal(meshes.left_main.material.color.getHexString(), "94a3b8");
   assert.equal(meshes.left_main.material.opacity, 1);
   assert.equal(meshes.myocardium.renderOrder, 0);
   assert.equal(meshes.lad.renderOrder, 1);
@@ -91,7 +110,7 @@ test("risk, focus, tissue opacity and visibility update the existing resources; 
     visible: true,
     opacity: 1,
   });
-  assert.equal(meshes.lad.material.color.getHexString(), "8f1d1d");
+  assert.equal(meshes.lad.material.color.getHexString(), "94a3b8");
   assert.equal(meshes.lcx.material.opacity, 1);
   assert.equal(meshes.myocardium.material.depthWrite, true);
   // At opacity 1, myocardium returns to natural base color and vessels have subtle base emissive
@@ -128,4 +147,21 @@ test("viewer resource cleanup disposes every mesh geometry and material", () => 
   disposeAnatomyMeshes(meshes);
   assert.equal(disposed.length, 10);
   assert.equal(new Set(disposed).size, 10);
+});
+
+test("risk focus isolates each artery and reset restores the user's tissue visibility", () => {
+  const meshes = createAnatomyMeshes(anatomy);
+  const settings = { mode: "risk", prediction: null, opacity: 0.45, visible: true };
+  for (const focus of ["lad", "lcx", "rca"]) {
+    updateAnatomyMeshes(meshes, { ...settings, focus });
+    assert.deepEqual(Object.keys(meshes).filter((name) => meshes[name].visible), [focus]);
+  }
+  updateAnatomyMeshes(meshes, { ...settings, focus: null });
+  assert.ok(Object.values(meshes).every((mesh) => mesh.visible));
+  updateAnatomyMeshes(meshes, { ...settings, focus: null, visible: false });
+  assert.equal(meshes.myocardium.visible, false);
+  assert.ok(["lad", "lcx", "rca", "left_main"].every((name) => meshes[name].visible));
+  updateAnatomyMeshes(meshes, { ...settings, mode: "anatomy", focus: "lad" });
+  assert.ok(Object.values(meshes).every((mesh) => mesh.visible));
+  disposeAnatomyMeshes(meshes);
 });

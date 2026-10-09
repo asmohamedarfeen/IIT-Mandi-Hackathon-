@@ -24,6 +24,8 @@ class CardioRepository:
             rca_classification=data["rca_classification"],
             clinical_inputs=data["clinical_inputs"],
             explanation_summary=data.get("explanation_summary"),
+            assessment_uuid=data.get("assessment_uuid"),
+            prediction_snapshot=data.get("prediction_snapshot"),
             notes=data.get("notes"),
         )
         self.db.add(record)
@@ -33,6 +35,9 @@ class CardioRepository:
 
     def get_assessment(self, assessment_id: int) -> Optional[PatientAssessment]:
         return self.db.query(PatientAssessment).filter(PatientAssessment.id == assessment_id).first()
+
+    def get_assessment_by_uuid(self, assessment_uuid: str) -> Optional[PatientAssessment]:
+        return self.db.query(PatientAssessment).filter(PatientAssessment.assessment_uuid == assessment_uuid).first()
 
     def list_assessments(self, limit: int = 50) -> List[PatientAssessment]:
         return (

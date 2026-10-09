@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     MODEL_BUNDLE_PATH: str = os.path.join(ARTIFACTS_DIR, "cardiovision_ensemble.joblib")
     ANATOMY_3D_PATH: str = os.path.join(ARTIFACTS_DIR, "heart_model_anatomy.json")
     BENCHMARK_PATH: str = os.path.join(ARTIFACTS_DIR, "benchmark_summary.json")
+    MODEL_QUALITY_DIR: str = os.path.join(ARTIFACTS_DIR, "model_quality")
 
     # CORS settings
     ALLOWED_ORIGINS: List[str] = [

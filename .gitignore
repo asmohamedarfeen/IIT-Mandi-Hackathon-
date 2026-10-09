@@ -20,3 +20,10 @@ db/*.db
 
 # Local reproducible Python runtime
 .venv/
+
+# Private row-level evaluation audit; public aggregate summaries may be versioned.
+artifacts/model_quality/runs/*/oof.json
+
+# Generated output & temporary files
+output/
+tmp/

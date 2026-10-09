@@ -7,6 +7,9 @@ calibrated probability estimation, 3D anatomical risk coloring, and independent 
 import os
 import json
 import logging
+import hashlib
+from datetime import datetime, timezone
+from uuid import uuid4
 from typing import Dict, Any, List, Optional, Tuple
 import joblib
 import numpy as np
@@ -28,14 +31,15 @@ from backend.cardio.constants import (
     RAW_BINARY_NUMERIC_FEATURES,
 )
 from backend.cardio.service.feature_service import (
-    clean_and_encode_dataset,
-    ClinicalFeatureEngineer,
+    prepare_features,
 )
 from backend.cardio.schemas.patient_schema import PatientInputSchema
+from backend.cardio.service.explanation_service import build_feature_lineage
 from backend.cardio.schemas.prediction_schema import (
     VesselRiskInfo,
     SHAPFeatureImpact,
     PredictionResponse,
+    PredictionEvidence,
     TargetBenchmarkResponse,
     ThreeDAnatomyResponse,
 )
@@ -143,6 +147,7 @@ class PredictionService:
         self.tree_explainers: Dict[str, Any] = {}
         self.anatomy_cache: Optional[Dict[str, Any]] = None
         self.benchmark_cache: Optional[Dict[str, Any]] = None
+        self.model_artifact_sha256: Optional[str] = None
         self._load_artifacts()
 
     def _load_artifacts(self):
@@ -153,6 +158,8 @@ class PredictionService:
         try:
             logger.info(f"Loading model bundle from {settings.MODEL_BUNDLE_PATH}...")
             self.bundle = joblib.load(settings.MODEL_BUNDLE_PATH)
+            with open(settings.MODEL_BUNDLE_PATH, "rb") as artifact:
+                self.model_artifact_sha256 = hashlib.file_digest(artifact, "sha256").hexdigest()
             if not isinstance(self.bundle, dict) or not self.bundle.get("feature_names"):
                 raise ValueError("Model bundle has no feature contract")
 
@@ -199,14 +206,7 @@ class PredictionService:
             raw_dict.pop("patient_id")
 
         df = pd.DataFrame([raw_dict])
-        cleaned_df = clean_and_encode_dataset(df)
-
-        engineer = ClinicalFeatureEngineer()
-        engineered_df = engineer.transform(cleaned_df)
-
-        # Align with bundle feature names
-        expected_features = self.bundle["feature_names"]
-        aligned_df = engineered_df[expected_features]
+        aligned_df = prepare_features(df, feature_names=self.bundle["feature_names"])
         vector = aligned_df.values.astype(np.float32)
         if not np.isfinite(vector).all():
             raise ValueError("Model input contains non-finite feature values")
@@ -231,6 +231,7 @@ class PredictionService:
                 raise RuntimeError("Model pipeline weights not loaded. Run train_pipeline.py first.")
 
         vector, aligned_df = self._prepare_patient_feature_vector(patient_data)
+        clinical_inputs = patient_data.model_dump(by_alias=True, exclude={"patient_id"})
 
         target_risks: Dict[str, VesselRiskInfo] = {}
         shap_explanations: Dict[str, List[SHAPFeatureImpact]] = {}
@@ -282,6 +283,7 @@ class PredictionService:
 
                 top_impacts.append(
                     SHAPFeatureImpact(
+                        **build_feature_lineage(feat_name, clinical_inputs, float(vector[0, idx])).model_dump(),
                         feature=feat_name,
                         display_name=FEATURE_DISPLAY_NAMES.get(feat_name, feat_name),
                         contribution=contrib,
@@ -311,6 +313,33 @@ class PredictionService:
             vessel_colors_3d=vessel_colors_3d,
             shap_explanations=shap_explanations,
             disclaimer=CLINICAL_SAFETY_DISCLAIMER,
+            evidence=PredictionEvidence(
+                assessment_id=str(uuid4()),
+                generated_at=datetime.now(timezone.utc).isoformat(),
+                clinical_inputs=clinical_inputs,
+                prediction_model="Sigmoid-calibrated voting ensemble",
+                explanation_model="Independent XGBoost TreeSHAP (log-odds)",
+                application_version=settings.VERSION,
+                model_artifact_sha256=self.model_artifact_sha256,
+                validation_summary={
+                    "record_count": 303,
+                    "method": "Supplied stratified 10-fold cross-validation of uncalibrated candidates and soft-voting ensembles",
+                    "source": "Supplied benchmark_summary.json; not independently rerun",
+                    "ensemble_metrics": {
+                        target: dict(models["Ensemble (Soft-Voting)"])
+                        for target, models in (self.benchmark_cache or {}).get("targets", {}).items()
+                        if "Ensemble (Soft-Voting)" in models
+                    },
+                    "limitations": "These benchmarks do not measure the deployed sigmoid-calibrated models. No external validation, calibration curves or confidence intervals are supplied.",
+                },
+                limitations=[
+                    "Confidence intervals are not available in the supplied model bundle.",
+                    "Clinical calibration and external validation have not been established. Training used 303 records.",
+                    "SHAP describes an independent XGBoost model; contributions do not exactly explain the ensemble probability.",
+                    "35% and 65% are display thresholds, not validated clinical decision boundaries.",
+                    "Whole-vessel scores do not locate lesions or measure percentage blockage. Anatomy is a reference model, not patient-specific imaging.",
+                ],
+            ),
         )
 
     def get_benchmarks(self) -> Dict[str, Any]:

@@ -6,6 +6,7 @@ from typing import Tuple, List, Dict, Any
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.utils.validation import check_is_fitted
 
 from backend.cardio.constants import (
     RAW_NUMERIC_FEATURES,
@@ -154,7 +155,7 @@ class ClinicalFeatureEngineer(BaseEstimator, TransformerMixin):
         return df
 
 
-def clean_and_encode_dataset(df: pd.DataFrame) -> pd.DataFrame:
+def normalize_dataset(df: pd.DataFrame, impute: bool = False) -> pd.DataFrame:
     """
     Cleans raw dataset, normalizes text variations, and standardizes binary and categorical fields.
     """
@@ -162,10 +163,12 @@ def clean_and_encode_dataset(df: pd.DataFrame) -> pd.DataFrame:
 
     # Normalize column names (strip whitespace)
     df.columns = [col.strip() for col in df.columns]
+    if not df.columns.is_unique:
+        raise ValueError('Duplicate normalized measurement columns')
 
     for col in CATEGORY_CODES:
         if col in df.columns:
-            df[col] = df[col].map(lambda value: encode_category(value, col))
+            df[col] = df[col].map(lambda value: np.nan if pd.isna(value) else encode_category(value, col))
 
     # Fill missing BMI per row before numeric imputation, retaining it as a feature.
     if "Weight" in df.columns and "Length" in df.columns:
@@ -182,10 +185,103 @@ def clean_and_encode_dataset(df: pd.DataFrame) -> pd.DataFrame:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
             # Impute missing with median
-            if df[col].isna().sum() > 0:
+            if impute and df[col].isna().sum() > 0:
                 df[col] = df[col].fillna(df[col].median())
 
     return df
+
+
+def clean_and_encode_dataset(df: pd.DataFrame) -> pd.DataFrame:
+    """Compatibility wrapper retaining legacy full-frame numeric imputation."""
+    return normalize_dataset(df, impute=True)
+
+
+def extract_targets(df: pd.DataFrame) -> Dict[str, pd.Series]:
+    """Encode declared outcomes, rejecting absent, missing, or unknown labels."""
+    df = df.rename(columns=lambda name: name.strip())
+    if not df.columns.is_unique:
+        raise ValueError('Duplicate normalized target columns')
+    targets = {}
+    for target in TARGET_NAMES:
+        column = "Cath" if target == "CAD" and "Cath" in df else target
+        if column not in df:
+            raise ValueError(f"Missing target column: {column}")
+        values = df[column]
+        if column == "CAD":
+            encoded = pd.to_numeric(values, errors="coerce")
+            valid = encoded.isin([0, 1]) & values.notna()
+        else:
+            labels = values.astype("string").str.strip().str.lower()
+            positive = "cad" if target == "CAD" else "stenotic"
+            valid = labels.isin(["normal", positive]) & values.notna()
+            encoded = labels.eq(positive)
+        if not valid.all():
+            raise ValueError(f"Invalid or missing target labels in {column}")
+        targets[target] = encoded.astype(int)
+    return targets
+
+
+def _engineer_and_align(df: pd.DataFrame, feature_names=None) -> pd.DataFrame:
+    excluded = LEAKAGE_COLUMNS + ZERO_VARIANCE_COLUMNS + ["patient_id"]
+    engineered = ClinicalFeatureEngineer().transform(df.drop(columns=excluded, errors="ignore"))
+    if feature_names is not None:
+        if set(feature_names) & set(LEAKAGE_COLUMNS):
+            raise ValueError("Feature contract cannot contain target outcomes")
+        missing = set(feature_names) - set(engineered.columns)
+        if missing:
+            raise ValueError(f"Missing required features: {sorted(missing)}")
+        engineered = engineered.loc[:, list(feature_names)]
+    try:
+        engineered = engineered.astype(np.float32)
+    except (ValueError, TypeError) as exc:
+        raise ValueError("Model features must be numeric") from exc
+    if not np.isfinite(engineered.to_numpy()).all():
+        raise ValueError("Model features must contain only finite values")
+    return engineered
+
+
+def prepare_features(df: pd.DataFrame, feature_names=None) -> pd.DataFrame:
+    """Apply the shared inference definition, optionally selecting a saved contract."""
+    return _engineer_and_align(clean_and_encode_dataset(df), feature_names)
+
+
+class ClinicalPreprocessor(BaseEstimator, TransformerMixin):
+    """Fit imputation on training rows before deterministic clinical engineering."""
+
+    def __init__(self, feature_names=None):
+        self.feature_names = feature_names
+
+    def fit(self, X: pd.DataFrame, y=None):
+        normalized = normalize_dataset(X, impute=False).drop(
+            columns=LEAKAGE_COLUMNS + ZERO_VARIANCE_COLUMNS + ["patient_id"], errors="ignore"
+        )
+        self.medians_ = {}
+        for column in normalized:
+            values = pd.to_numeric(normalized[column], errors="raise")
+            if not np.isfinite(values.dropna().to_numpy()).all():
+                raise ValueError(f"Training feature {column} must contain finite values")
+            if values.isna().all():
+                raise ValueError(f"Training feature {column} has no observed values")
+            # Modes preserve valid integer category codes; medians cover measurements.
+            self.medians_[column] = float(values.mode().iloc[0] if column in CATEGORY_CODES else values.median())
+        self.input_columns_ = list(normalized.columns)
+        fitted = _engineer_and_align(normalized.fillna(self.medians_), self.feature_names)
+        self.feature_names_out_ = np.asarray(fitted.columns, dtype=object)
+        self.n_features_in_ = X.shape[1]
+        return self
+
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        check_is_fitted(self, "feature_names_out_")
+        normalized = normalize_dataset(X, impute=False)
+        missing = set(self.input_columns_) - set(normalized.columns)
+        if missing:
+            raise ValueError(f"Missing required input columns: {sorted(missing)}")
+        normalized = normalized.loc[:, self.input_columns_].fillna(self.medians_)
+        return _engineer_and_align(normalized, self.feature_names_out_)
+
+    def get_feature_names_out(self, input_features=None):
+        check_is_fitted(self, "feature_names_out_")
+        return self.feature_names_out_.copy()
 
 
 def prepare_training_data(
@@ -196,36 +292,8 @@ def prepare_training_data(
     applies feature engineering, and returns (X_features, y_targets_dict, feature_column_names).
     """
     raw_df = pd.read_excel(excel_path)
-    cleaned_df = clean_and_encode_dataset(raw_df)
-
-    # Extract target series
-    targets: Dict[str, pd.Series] = {}
-
-    # 1. Overall CAD (Cath)
-    if "Cath" in cleaned_df.columns:
-        targets["CAD"] = cleaned_df["Cath"].astype(str).str.strip().eq("CAD").astype(int)
-    elif "CAD" in cleaned_df.columns:
-        targets["CAD"] = cleaned_df["CAD"].astype(int)
-    else:
-        raise ValueError("Neither 'Cath' nor 'CAD' target column found in dataset")
-
-    # 2. LAD Stenosis
-    targets["LAD"] = cleaned_df["LAD"].astype(str).str.strip().str.lower().eq("stenotic").astype(int)
-
-    # 3. LCX Stenosis
-    targets["LCX"] = cleaned_df["LCX"].astype(str).str.strip().str.lower().eq("stenotic").astype(int)
-
-    # 4. RCA Stenosis
-    targets["RCA"] = cleaned_df["RCA"].astype(str).str.strip().str.lower().eq("stenotic").astype(int)
-
-    # Drop all target leakage columns and zero-variance constant columns from feature matrix X
-    drop_cols = [col for col in (LEAKAGE_COLUMNS + ZERO_VARIANCE_COLUMNS) if col in cleaned_df.columns]
-    feature_df = cleaned_df.drop(columns=drop_cols)
-
-    # Apply clinical feature engineering
-    engineer = ClinicalFeatureEngineer()
-    engineered_df = engineer.transform(feature_df)
-
+    targets = extract_targets(raw_df)
+    engineered_df = prepare_features(raw_df)
     feature_names = list(engineered_df.columns)
 
     return engineered_df, targets, feature_names

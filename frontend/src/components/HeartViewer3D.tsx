@@ -1,47 +1,66 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { RotateCcw, Maximize2, HeartPulse, Minus, Plus } from "lucide-react";
-import { ThreeDAnatomyPayload, PredictionResponse } from "../utils/types";
+import { RotateCcw, Maximize2, HeartPulse, Minus, Plus, TriangleAlert } from "lucide-react";
+import { ThreeDAnatomyPayload, PredictionResponse, Vessel } from "../utils/types";
 import { VESSELS } from "../utils/vessels";
 import { toggleFullscreen } from "../utils/fullscreen";
+import { createRenderLoop } from "../utils/renderLoop";
+import { VesselDetail } from "./VesselDetail";
+import { rankedVessels, riskBand } from "../utils/risk";
 import {
   createAnatomyMeshes,
   updateAnatomyMeshes,
   disposeAnatomyMeshes,
+  pickCoronaryVessel,
   type AnatomyMesh,
 } from "../utils/anatomy";
-type Vessel = "lad" | "lcx" | "rca";
 interface SceneState {
   renderer: THREE.WebGLRenderer;
   camera: THREE.PerspectiveCamera;
   controls: OrbitControls;
   group: THREE.Group;
   meshes: Record<string, AnatomyMesh>;
-  fit: () => void;
-  center: THREE.Vector3;
-  distance: number;
+  fit: (animate?: boolean) => void;
 }
 export function HeartViewer3D({
   anatomyData,
   prediction,
+  stale = false,
   error,
   onRetry,
+  selectedVessel,
+  onSelectVessel,
+  active = true,
 }: {
   anatomyData: ThreeDAnatomyPayload | null;
   prediction: PredictionResponse | null;
+  stale?: boolean;
   error: boolean;
   onRetry: () => void;
+  selectedVessel: Vessel | null;
+  onSelectVessel: (vessel: Vessel | null) => void;
+  active?: boolean;
 }) {
+  const activeRef = useRef(active);
+  const loopRef = useRef<ReturnType<typeof createRenderLoop> | null>(null);
+  useEffect(() => {
+    activeRef.current = active;
+    loopRef.current?.setActive(active);
+  }, [active]);
+  const focus = selectedVessel;
+  const selectRef = useRef(onSelectVessel);
+  useEffect(() => { selectRef.current = onSelectVessel; }, [onSelectVessel]);
   const host = useRef<HTMLDivElement>(null),
     stage = useRef<HTMLDivElement>(null),
     sceneRef = useRef<SceneState | null>(null),
-    pulseRef = useRef(false);
+    pulseRef = useRef(false),
+    focusRef = useRef<Vessel | null>(null),
+    reducedRef = useRef(false);
   const [mode, setMode] = useState<"anatomy" | "risk">("anatomy"),
     [pulse, setPulse] = useState(false),
     [opacity, setOpacity] = useState(1),
     [visible, setVisible] = useState(true),
-    [focus, setFocus] = useState<Vessel | null>(null),
     [webglError, setWebglError] = useState(false),
     [attempt, setAttempt] = useState(0),
     [reduced, setReduced] = useState(false),
@@ -56,7 +75,11 @@ export function HeartViewer3D({
   }, []);
   useEffect(() => {
     pulseRef.current = pulse && !reduced;
+    reducedRef.current = reduced;
   }, [pulse, reduced]);
+  useEffect(() => {
+    if (prediction && !stale) setMode("risk");
+  }, [prediction, stale]);
   useEffect(() => {
     const change = () => setFullscreen(document.fullscreenElement === stage.current);
     document.addEventListener("fullscreenchange", change);
@@ -103,45 +126,83 @@ export function HeartViewer3D({
     scene.add(rim);
     const meshes = createAnatomyMeshes(anatomyData);
     group.add(...Object.values(meshes));
-    const box = new THREE.Box3().setFromObject(group),
-      center = box.getCenter(new THREE.Vector3()),
-      size = box.getSize(new THREE.Vector3());
+    const box = new THREE.Box3().setFromObject(group);
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
     controls.enablePan = false;
-    controls.minDistance = 2;
-    controls.maxDistance = 12;
-    controls.target.copy(center);
+    controls.minDistance = 0.5;
+    controls.maxDistance = 20;
+    let transition: {
+      start: number;
+      fromPosition: THREE.Vector3;
+      fromTarget: THREE.Vector3;
+      position: THREE.Vector3;
+      target: THREE.Vector3;
+    } | null = null;
+    const stopTransition = () => { transition = null; };
+    controls.addEventListener("start", stopTransition);
     const state: SceneState = {
       renderer,
       camera,
       controls,
       group,
       meshes,
-      center,
-      distance: 7,
-      fit: () => {
+      fit: (animate = false) => {
+        const vessel = focusRef.current;
+        const bounds = vessel ? meshes[vessel]?.geometry.boundingBox || box : box;
+        const center = bounds.getCenter(new THREE.Vector3());
+        const radius = bounds.getBoundingSphere(new THREE.Sphere()).radius;
         const halfFov = THREE.MathUtils.degToRad(camera.fov / 2);
-        state.distance =
-          Math.max(
-            size.y / 2 / Math.tan(halfFov),
-            size.x / 2 / (Math.tan(halfFov) * camera.aspect),
-          ) +
-          size.z / 2;
-        state.distance *= 1.13;
-        camera.position
-          .copy(center)
-          .add(
-            new THREE.Vector3(0.14, 0.03, 1)
-              .normalize()
-              .multiplyScalar(state.distance),
-          );
-        controls.target.copy(center);
+        const distance = radius / Math.sin(Math.min(halfFov, Math.atan(Math.tan(halfFov) * camera.aspect))) * 1.08;
+        const directions = {
+          lad: new THREE.Vector3(0.5, 0.15, 1),
+          lcx: new THREE.Vector3(0.9, 0.25, -1),
+          rca: new THREE.Vector3(-0.8, 0.1, 1),
+        };
+        const direction = vessel ? directions[vessel] : new THREE.Vector3(0.14, 0.03, 1);
+        const position = center.clone().add(direction.normalize().multiplyScalar(distance));
+        controls.maxDistance = Math.max(20, distance * 2);
+        if (animate && !reducedRef.current) {
+          transition = {
+            start: performance.now(),
+            fromPosition: camera.position.clone(),
+            fromTarget: controls.target.clone(),
+            position,
+            target: center,
+          };
+        } else {
+          transition = null;
+          camera.position.copy(position);
+          controls.target.copy(center);
+        }
         controls.update();
       },
     };
     sceneRef.current = state;
+    const raycaster = new THREE.Raycaster();
+    let pointerStart: { x: number; y: number; id: number } | null = null;
+    const pointerDown = (event: PointerEvent) => {
+      pointerStart = event.isPrimary && event.button === 0 ? { x: event.clientX, y: event.clientY, id: event.pointerId } : null;
+    };
+    const pointerUp = (event: PointerEvent) => {
+      const start = pointerStart;
+      pointerStart = null;
+      if (!start || start.id !== event.pointerId || Math.hypot(event.clientX - start.x, event.clientY - start.y) > 5) return;
+      const bounds = renderer.domElement.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) return;
+      raycaster.setFromCamera(new THREE.Vector2(
+        (event.clientX - bounds.left) / bounds.width * 2 - 1,
+        -(event.clientY - bounds.top) / bounds.height * 2 + 1,
+      ), camera);
+      group.updateMatrixWorld(true);
+      const selected = pickCoronaryVessel(raycaster, meshes);
+      if (selected) selectRef.current(selected);
+    };
+    const pointerCancel = () => { pointerStart = null; };
+    renderer.domElement.addEventListener("pointerdown", pointerDown);
+    renderer.domElement.addEventListener("pointerup", pointerUp);
+    renderer.domElement.addEventListener("pointercancel", pointerCancel);
     const resize = () => {
       const width = element.clientWidth,
         height = element.clientHeight;
@@ -149,7 +210,7 @@ export function HeartViewer3D({
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
-      state.fit();
+      state.fit(Boolean(transition));
     };
     const observer = new ResizeObserver(resize);
     observer.observe(element);
@@ -159,10 +220,15 @@ export function HeartViewer3D({
       setWebglError(true);
     };
     renderer.domElement.addEventListener("webglcontextlost", lost);
-    let frame = 0;
     const start = performance.now();
     const animate = (now: number) => {
-      frame = requestAnimationFrame(animate);
+      if (transition) {
+        const progress = Math.min((now - transition.start) / 450, 1);
+        const eased = 1 - (1 - progress) ** 3;
+        camera.position.lerpVectors(transition.fromPosition, transition.position, eased);
+        controls.target.lerpVectors(transition.fromTarget, transition.target, eased);
+        if (progress === 1) transition = null;
+      }
       const t = ((now - start) / 1000) % 1.15;
       const beat = pulseRef.current
         ? 0.012 * Math.exp(-(((t - 0.18) / 0.07) ** 2)) +
@@ -172,12 +238,19 @@ export function HeartViewer3D({
       controls.update();
       renderer.render(scene, camera);
     };
-    frame = requestAnimationFrame(animate);
+    const loop = createRenderLoop(animate);
+    loopRef.current = loop;
+    loop.setActive(activeRef.current);
     return () => {
-      cancelAnimationFrame(frame);
+      loop.dispose();
+      loopRef.current = null;
       observer.disconnect();
+      controls.removeEventListener("start", stopTransition);
       controls.dispose();
       renderer.domElement.removeEventListener("webglcontextlost", lost);
+      renderer.domElement.removeEventListener("pointerdown", pointerDown);
+      renderer.domElement.removeEventListener("pointerup", pointerUp);
+      renderer.domElement.removeEventListener("pointercancel", pointerCancel);
       disposeAnatomyMeshes(meshes);
       scene.clear();
       renderer.dispose();
@@ -187,37 +260,26 @@ export function HeartViewer3D({
     };
   }, [anatomyData, attempt]);
   useEffect(() => {
+    focusRef.current = focus;
+    sceneRef.current?.fit(true);
+  }, [focus]);
+  useEffect(() => {
     const state = sceneRef.current;
     if (!state) return;
     updateAnatomyMeshes(state.meshes, {
       mode,
-      prediction,
-      opacity,
+      prediction: stale ? null : prediction,
+      opacity: mode === "risk" ? Math.min(opacity, 0.18) : opacity,
       visible,
       focus,
     });
-  }, [anatomyData, attempt, mode, prediction, opacity, visible, focus]);
+  }, [anatomyData, attempt, mode, prediction, opacity, visible, focus, stale]);
   function focusVessel(vessel: Vessel | null) {
-    setFocus(vessel);
-    const state = sceneRef.current;
-    if (!state) return;
-    if (!vessel) {
-      state.fit();
+    if (vessel === focus) {
+      sceneRef.current?.fit(true);
       return;
     }
-    const mesh = state.meshes[vessel];
-    if (!mesh) return;
-    const center = mesh.geometry.boundingBox!.getCenter(new THREE.Vector3());
-    const directions = {
-      lad: new THREE.Vector3(0.5, 0.15, 1),
-      lcx: new THREE.Vector3(0.9, 0.25, -1),
-      rca: new THREE.Vector3(-0.8, 0.1, 1),
-    };
-    state.controls.target.copy(center);
-    state.camera.position
-      .copy(center)
-      .add(directions[vessel].normalize().multiplyScalar(state.distance * 0.8));
-    state.controls.update();
+    onSelectVessel(vessel);
   }
   const zoom = (factor: number) => {
     const s = sceneRef.current;
@@ -229,28 +291,47 @@ export function HeartViewer3D({
       s.controls.update();
     }
   };
+  const isolated = mode === "risk" && focus !== null;
+  const selectedAnatomy = VESSELS.find((vessel) => vessel.key === focus);
+  const currentPrediction = stale ? null : prediction;
+  const ranked = rankedVessels(currentPrediction);
+  const concerning = ranked.filter(({ risk }) => ["high", "moderate"].includes(riskBand(risk.probability_percent)));
+  const highest = concerning[0];
   return (
-    <div className="anatomical-stage" ref={stage}>
+    <div className={"anatomical-stage" + (isolated ? " has-vessel-detail" : "") + (mode === "risk" ? " risk-mode" : "")} ref={stage}>
       <div className="stage-top">
         <div>
-          <span className="stage-overline">ANATOMICAL ATLAS</span>
-          <p>The coronary heart</p>
+          <span className="stage-overline">{isolated ? "ISOLATED ARTERY" : "ANATOMICAL ATLAS"}</span>
+          <p>{isolated ? `${focus.toUpperCase()} · reference anatomy` : "The coronary heart"}</p>
         </div>
         <div className="segmented dark">
           <button
             aria-pressed={mode === "anatomy"}
-            onClick={() => setMode("anatomy")}
+            onClick={() => { setMode("anatomy"); focusVessel(null); }}
           >
             Anatomy
           </button>
           <button
             aria-pressed={mode === "risk"}
-            onClick={() => setMode("risk")}
+            onClick={() => { setMode("risk"); focusVessel(null); }}
           >
             Risk map
           </button>
         </div>
       </div>
+      {mode === "risk" && (
+        <div className="risk-attention" data-risk={stale ? "unknown" : riskBand(highest?.risk.probability_percent)}>
+          <div role="status">
+            <strong>{stale ? "Inputs changed — reassess" : !currentPrediction ? "No current assessment" : highest ? "Model flags for review" : ranked.length < 3 ? "Incomplete vessel scores" : "No elevated vessel scores"}</strong>
+            <p>{stale ? "Previous risk highlights are hidden." : !currentPrediction ? "Run an assessment. Unassessed arteries are gray." : highest ? concerning.map(({ key, risk }) => `${key.toUpperCase()} ${risk.probability_percent.toFixed(1)}%`).join(" · ") : ranked.length < 3 ? "Run a new assessment to obtain all vessel scores." : "Low model scores do not rule out disease."}</p>
+          </div>
+          {highest && (
+            <button onClick={() => focusVessel(highest.key)}>
+              <TriangleAlert size={16} /> Inspect {highest.key.toUpperCase()}
+            </button>
+          )}
+        </div>
+      )}
       <div className="heart-canvas" ref={host} />
       {(!anatomyData || webglError) && (
         <div className="viewer-state" role="status">
@@ -294,8 +375,16 @@ export function HeartViewer3D({
       </div>
       <div className="stage-caption">
         <span>BodyParts3D · reference anatomy</span>
-        <span>Drag to rotate / scroll to zoom</span>
+        <span>Click an artery · drag to rotate · scroll to zoom</span>
       </div>
+      {isolated && selectedAnatomy && (
+        <VesselDetail
+          name={selectedAnatomy.name}
+          risk={currentPrediction?.vessels[focus.toUpperCase() as "LAD" | "LCX" | "RCA"]}
+          contributions={currentPrediction?.shap_explanations[focus.toUpperCase() as "LAD" | "LCX" | "RCA"]}
+          stale={stale}
+        />
+      )}
       <div className="stage-bottom">
         <div className="vessel-controls" aria-label="Focus a coronary vessel">
           {VESSELS.map((v) => (
@@ -307,40 +396,43 @@ export function HeartViewer3D({
               <i
                 style={{
                   background:
-                    mode === "risk" && prediction
-                      ? prediction.vessel_colors_3d[v.key]
+                    mode === "risk"
+                      ? currentPrediction?.vessel_colors_3d[v.key] || "#94a3b8"
                       : v.color,
                 }}
               />
               {v.key.toUpperCase()}
-              {mode === "risk" && prediction && (
+              {mode === "risk" && currentPrediction && (
                 <span>
-                  {prediction.vessels[
+                  {currentPrediction.vessels[
                     v.key.toUpperCase() as "LAD" | "LCX" | "RCA"
                   ].probability_percent.toFixed(0)}
                   %
                 </span>
               )}
+              {mode === "risk" && currentPrediction && ["high", "moderate"].includes(riskBand(currentPrediction.vessels[v.key.toUpperCase() as "LAD" | "LCX" | "RCA"].probability_percent)) && <TriangleAlert size={12} aria-label="Elevated model score" />}
             </button>
           ))}
           <button className="reset-view" onClick={() => focusVessel(null)}>
             <RotateCcw size={13} />
-            Reset view
+            {isolated ? "All arteries" : "Reset view"}
           </button>
         </div>
         <div className="tissue-controls">
           <label>
             <input
               type="checkbox"
+              disabled={isolated}
               checked={visible}
               onChange={(e) => setVisible(e.target.checked)}
             />
             Tissue
           </label>
           <label className="opacity-control">
-            Opacity
+            {mode === "risk" ? "Tissue dimmed" : "Opacity"}
             <input
               aria-label="Tissue opacity"
+              disabled={isolated || !visible || mode === "risk"}
               type="range"
               min="0.1"
               max="1"

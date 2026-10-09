@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 CardioVision AI - Comprehensive Training & Evaluation Pipeline
-Implements 10-fold Stratified Cross-Validation, Optuna Hyperparameter Tuning,
+Implements 10-fold Stratified Cross-Validation,
 Ensemble Soft-Voting, Calibrated Probability Estimation, and SHAP Explainability.
 """
 
@@ -13,27 +13,9 @@ from typing import Dict, Any, List, Tuple
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import (
-    RandomForestClassifier,
-    ExtraTreesClassifier,
-    VotingClassifier,
-)
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import (
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    roc_auc_score,
-    matthews_corrcoef,
-    confusion_matrix,
-)
 from sklearn.preprocessing import StandardScaler
-from xgboost import XGBClassifier
-from lightgbm import LGBMClassifier
-from catboost import CatBoostClassifier
 import shap
 
 # Ensure backend modules can be imported
@@ -49,8 +31,10 @@ from backend.cardio.constants import (
 )
 from backend.cardio.service.feature_service import (
     prepare_training_data,
-    ClinicalFeatureEngineer,
 )
+
+from backend.model_quality.models import get_candidate_models, get_voting_model
+from backend.model_quality.metrics import binary_metrics
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("CardioVisionPipeline")
@@ -58,74 +42,10 @@ logger = logging.getLogger("CardioVisionPipeline")
 
 def calculate_metrics(y_true: np.ndarray, y_pred: np.ndarray, y_proba: np.ndarray) -> Dict[str, float]:
     """Calculate all primary and secondary evaluation metrics specified in plan.md."""
-    acc = accuracy_score(y_true, y_pred)
-    prec = precision_score(y_true, y_pred, zero_division=0)
-    rec = recall_score(y_true, y_pred, zero_division=0)
-    f1 = f1_score(y_true, y_pred, zero_division=0)
-    try:
-        auc = roc_auc_score(y_true, y_proba)
-    except Exception:
-        auc = 0.5
-    mcc = matthews_corrcoef(y_true, y_pred)
+    metrics = binary_metrics(y_true, y_proba, y_pred=y_pred)
+    names = ("accuracy", "precision", "recall", "f1", "roc_auc", "specificity", "mcc")
+    return {name: round(float(metrics[name]), 4) if metrics[name] is not None else None for name in names}
 
-    tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
-    specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
-
-    return {
-        "accuracy": round(float(acc), 4),
-        "precision": round(float(prec), 4),
-        "recall": round(float(rec), 4),
-        "f1": round(float(f1), 4),
-        "roc_auc": round(float(auc), 4),
-        "specificity": round(float(specificity), 4),
-        "mcc": round(float(mcc), 4),
-    }
-
-
-def get_candidate_models(random_state: int = 42) -> Dict[str, Any]:
-    """Return candidates for benchmarking and ensemble voting with regularized hyperparameters."""
-    return {
-        "LogisticRegression": LogisticRegression(
-            max_iter=1000, class_weight="balanced", random_state=random_state
-        ),
-        "RandomForest": RandomForestClassifier(
-            n_estimators=180, max_depth=5, min_samples_leaf=2, class_weight="balanced", random_state=random_state
-        ),
-        "ExtraTrees": ExtraTreesClassifier(
-            n_estimators=180, max_depth=5, min_samples_leaf=2, class_weight="balanced", random_state=random_state
-        ),
-        "XGBoost": XGBClassifier(
-            n_estimators=140,
-            max_depth=3,
-            learning_rate=0.03,
-            subsample=0.8,
-            colsample_bytree=0.7,
-            reg_alpha=0.5,
-            reg_lambda=2.0,
-            eval_metric="logloss",
-            random_state=random_state,
-        ),
-        "LightGBM": LGBMClassifier(
-            n_estimators=140,
-            max_depth=3,
-            num_leaves=14,
-            learning_rate=0.03,
-            subsample=0.8,
-            colsample_bytree=0.7,
-            reg_alpha=0.5,
-            reg_lambda=2.0,
-            random_state=random_state,
-            verbose=-1,
-        ),
-        "CatBoost": CatBoostClassifier(
-            iterations=200,
-            depth=4,
-            learning_rate=0.03,
-            l2_leaf_reg=4.0,
-            verbose=0,
-            random_seed=random_state,
-        ),
-    }
 
 
 def run_cross_validation_benchmark(
@@ -161,21 +81,14 @@ def run_cross_validation_benchmark(
 
         # Compute average metrics across 10 folds
         avg_metrics = {
-            metric: round(float(np.mean([f[metric] for f in fold_metrics])), 4)
+            metric: round(float(np.mean([f[metric] for f in fold_metrics if f[metric] is not None])), 4) if any(f[metric] is not None for f in fold_metrics) else None
             for metric in fold_metrics[0].keys()
         }
         benchmark_results[name] = avg_metrics
-        logger.info(f"Model {name:18s} -> ROC-AUC: {avg_metrics['roc_auc']:.4f}, F1: {avg_metrics['f1']:.4f}, Acc: {avg_metrics['accuracy']:.4f}")
+        logger.info('Model %-18s -> ROC-AUC: %s, F1: %s, Acc: %s', name, avg_metrics['roc_auc'], avg_metrics['f1'], avg_metrics['accuracy'])
 
     # Build and benchmark Production Soft-Voting Ensemble
-    ensemble_estimators = [
-        ("catboost", CatBoostClassifier(iterations=200, depth=4, learning_rate=0.03, l2_leaf_reg=4.0, verbose=0, random_seed=42)),
-        ("xgboost", XGBClassifier(n_estimators=140, max_depth=3, learning_rate=0.03, subsample=0.8, colsample_bytree=0.7, reg_alpha=0.5, reg_lambda=2.0, eval_metric="logloss", random_state=42)),
-        ("lightgbm", LGBMClassifier(n_estimators=140, max_depth=3, num_leaves=14, learning_rate=0.03, subsample=0.8, colsample_bytree=0.7, reg_alpha=0.5, reg_lambda=2.0, random_state=42, verbose=-1)),
-        ("rf", RandomForestClassifier(n_estimators=180, max_depth=5, min_samples_leaf=2, class_weight="balanced", random_state=42)),
-        ("et", ExtraTreesClassifier(n_estimators=180, max_depth=5, min_samples_leaf=2, class_weight="balanced", random_state=42)),
-    ]
-    ensemble = VotingClassifier(estimators=ensemble_estimators, voting="soft")
+    ensemble = get_voting_model()
 
     ensemble_fold_metrics: List[Dict[str, float]] = []
     for train_idx, val_idx in skf.split(X, y):
@@ -188,11 +101,11 @@ def run_cross_validation_benchmark(
         ensemble_fold_metrics.append(calculate_metrics(y_val, y_pred, y_proba))
 
     avg_ensemble_metrics = {
-        metric: round(float(np.mean([f[metric] for f in ensemble_fold_metrics])), 4)
+        metric: round(float(np.mean([f[metric] for f in ensemble_fold_metrics if f[metric] is not None])), 4) if any(f[metric] is not None for f in ensemble_fold_metrics) else None
         for metric in ensemble_fold_metrics[0].keys()
     }
     benchmark_results["Ensemble (Soft-Voting)"] = avg_ensemble_metrics
-    logger.info(f"Production Ensemble -> ROC-AUC: {avg_ensemble_metrics['roc_auc']:.4f}, F1: {avg_ensemble_metrics['f1']:.4f}, Acc: {avg_ensemble_metrics['accuracy']:.4f}")
+    logger.info('Production Ensemble -> ROC-AUC: %s, F1: %s, Acc: %s', avg_ensemble_metrics['roc_auc'], avg_ensemble_metrics['f1'], avg_ensemble_metrics['accuracy'])
 
     return benchmark_results, ensemble
 
@@ -237,17 +150,7 @@ def train_calibrated_pipeline(
         calibrated_models[target_name] = calibrated_clf
 
         # 4. Generate TreeSHAP explainer using regularized XGBoost surrogate
-        xgb_surrogate = XGBClassifier(
-            n_estimators=140,
-            max_depth=3,
-            learning_rate=0.03,
-            subsample=0.8,
-            colsample_bytree=0.7,
-            reg_alpha=0.5,
-            reg_lambda=2.0,
-            eval_metric="logloss",
-            random_state=42,
-        )
+        xgb_surrogate = get_candidate_models()["XGBoost"]
         xgb_surrogate.fit(X, y)
         explainer = shap.TreeExplainer(xgb_surrogate)
         shap_values = explainer.shap_values(X)

@@ -1,12 +1,14 @@
 import { ArrowUpRight } from "lucide-react";
 import { PatientData } from "../utils/types";
 import { FIELD_GROUPS, updatePatient } from "../utils/patient";
+import { measurementAnchorId } from "../utils/measurementNavigation";
 interface Props {
   patientData: PatientData;
   onChange: (data: PatientData) => void;
   onSubmit: (data: PatientData) => void;
   isLoading: boolean;
   ready: boolean;
+  hasAssessment?: boolean;
 }
 export function PatientForm({
   patientData,
@@ -14,6 +16,7 @@ export function PatientForm({
   onSubmit,
   isLoading,
   ready,
+  hasAssessment = false,
 }: Props) {
   return (
     <form
@@ -33,6 +36,7 @@ export function PatientForm({
         </div>
         <p>
           Review all groups. Values are prefilled defaults.
+          {hasAssessment && " Valid edits automatically reassess after a short pause."}
         </p>
       </div>
       <label className="patient-id">
@@ -65,6 +69,7 @@ export function PatientForm({
                 {field.unit && <span className="unit">{field.unit}</span>}
                 {field.options ? (
                   <select
+                    id={measurementAnchorId(field.key)}
                     required
                     value={
                       field.options[Number(patientData[field.key])] !==
@@ -93,6 +98,7 @@ export function PatientForm({
                   </select>
                 ) : (
                   <input
+                    id={measurementAnchorId(field.key)}
                     type="number"
                     required
                     min={field.min}
@@ -117,7 +123,7 @@ export function PatientForm({
               </label>
             ))}
             {index === 0 && (
-              <div className="bmi-readout">
+              <div className="bmi-readout" id={measurementAnchorId("BMI")} tabIndex={-1} aria-label="BMI input readout">
                 Calculated BMI{" "}
                 <strong>
                   {Number.isFinite(patientData.BMI)

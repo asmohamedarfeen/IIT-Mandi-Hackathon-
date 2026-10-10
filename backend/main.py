@@ -16,6 +16,7 @@ from fastapi import FastAPI, Request, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import time
+import secrets
 
 from backend.core.config import settings
 from backend.core.logging import setup_logging, logger
@@ -29,7 +30,8 @@ from backend.cardio.dependencies import get_prediction_service
 setup_logging()
 
 # Ensure database tables exist
-Base.metadata.create_all(bind=engine)
+if settings.AUTO_CREATE_TABLES:
+    Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -42,23 +44,44 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 
 @app.middleware("http")
+async def protect_api(request: Request, call_next):
+    # Preflight and readiness carry no records. Never put this token in a web bundle.
+    protected = request.url.path.startswith(settings.API_V1_PREFIX + "/")
+    public = request.url.path in {"/health", settings.API_V1_PREFIX + "/health"}
+    if settings.API_TOKEN and protected and not public and request.method != "OPTIONS":
+        supplied = request.headers.get("Authorization", "")
+        if not secrets.compare_digest(supplied, "Bearer " + settings.API_TOKEN):
+            return JSONResponse(status_code=401, content={"detail": "Authentication required."}, headers={"WWW-Authenticate": "Bearer"})
+    return await call_next(request)
+
+
+@app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
-    start_time = time.time()
-    response = await call_next(request)
-    process_time = (time.time() - start_time) * 1000.0
+    start_time = time.perf_counter()
+    try:
+        response = await call_next(request)
+    except Exception as exc:
+        # Starlette's outer error handler re-raises after sending its response,
+        # which makes uvicorn log the sensitive traceback. Handle it here first.
+        response = await global_exception_handler(request, exc)
+    process_time = (time.perf_counter() - start_time) * 1000.0
     response.headers["X-Process-Time-Ms"] = f"{process_time:.2f}"
+    if request.url.path.startswith(settings.API_V1_PREFIX + "/"):
+        response.headers["Cache-Control"] = "no-store"
+    response.headers["X-Content-Type-Options"] = "nosniff"
     return response
 
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Global error on {request.url.path}: {str(exc)}", exc_info=True)
+    # Exception strings/tracebacks and URL paths can contain clinical data or IDs.
+    logger.error("Unhandled request failure (%s)", type(exc).__name__)
     return JSONResponse(
         status_code=500,
         content={"detail": "An internal server error occurred while processing the clinical request."},
@@ -86,4 +109,4 @@ def health_check(response: Response, service=Depends(get_prediction_service)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True, app_dir=str(PROJECT_ROOT))
+    uvicorn.run("backend.main:app", host="127.0.0.1", port=8000, reload=True, app_dir=str(PROJECT_ROOT), access_log=False)

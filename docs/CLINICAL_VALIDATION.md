@@ -1,39 +1,32 @@
-# Clinical Validation & Explainable AI Guide
+# Clinical validation boundary
 
-## 1. Clinical Context & Anatomy
+CardioVision is a research demonstration using the supplied 303-record extended Z-Alizadeh Sani workbook. It has no independent external or prospective clinical validation. Current configuration, dataset, release identity and limitations are recorded in [MODEL_CARD.md](MODEL_CARD.md). The executable evaluation protocol is described in [EVALUATION_PROTOCOL.md](EVALUATION_PROTOCOL.md).
 
-Coronary Artery Disease (CAD) develops through atherosclerotic plaque accumulation within the epicardial coronary arteries. Clinically significant coronary stenosis is defined as $\ge 50\%$ diameter reduction in at least one major vessel during coronary angiography (`Cath`).
+## Intended use and outcomes
 
-The three primary vascular territories evaluated by CardioVision AI are:
+The application demonstrates separate CAD, LAD, LCX and RCA predictions from recorded demographic, examination, ECG, laboratory and echo variables. The workbook's Cath and vessel labels define retrospective outcomes; they do not supply patient-specific lesion coordinates. All five possible outcome column names (Cath/CAD/LAD/LCX/RCA) are excluded from every predictor. Independent outputs may disagree; the application must not silently reconcile them.
 
-1. **Left Anterior Descending (LAD):**
-   - Supplies the anterior wall of the left ventricle and anterior interventricular septum.
-   - Occlusion carries the highest mortality risk ("the widowmaker").
-2. **Left Circumflex Artery (LCX):**
-   - Supplies the lateral and posterior left ventricular walls.
-3. **Right Coronary Artery (RCA):**
-   - Supplies the right ventricle, inferior wall of the left ventricle, and cardiac conduction system (sinoatrial and atrioventricular nodes).
+An estimated model probability is not a validated clinical risk estimate, diagnosis, treatment recommendation or rule-out result. A low score can occur in a known positive case. The 35%/65% visualization bands and the per-target class thresholds are application choices, not clinically established operating points. Defaults and synthetic example inputs are assumptions, not measured observations.
 
----
+## Anatomy and explanation boundaries
 
-## 2. Target Leakage Prevention
+The 3D heart is a reference anatomy model. Vessel colors represent model probabilities; territory highlighting is an illustrative aggregate RWMA assumption. There is no patient-specific coronary imaging or validated plaque/lesion localization. Individual anatomical supply varies, so territory coloring must not be interpreted as an anatomical diagnosis.
 
-In retrospective catheterization cohorts such as the Z-Alizadeh Sani dataset, features directly derived from catheterization findings (`Cath`, `LAD`, `LCX`, `RCA`) represent ground-truth outcomes. 
+Primary domain attributions evaluate the actual deployed calibrated predictor in probability space against an explicit synthetic reference. They attribute grouped domains (rather than independent individual features), reconstruct the prediction relative to that reference, and are descriptive model behavior. They do not demonstrate causality, clinical protection, conditional-population SHAP or patient-specific counterfactual treatment benefit. Separate legacy XGBoost TreeSHAP values, where exposed, describe that independent classifier's log-odds; they need not reproduce the deployed calibrated probability. Neither explanation establishes clinical validity or safety.
 
-In CardioVision AI:
-- `Cath` (Overall CAD), `LAD`, `LCX`, and `RCA` are strictly quarantined as target training labels.
-- The input feature matrix $X$ only contains non-invasive pre-procedural observations: Demographics, Vital Signs, Physical Exam, ECG, Standard Laboratory Biomarkers, and Transthoracic Echocardiography (`EF-TTE`, `Region RWMA`).
+## Evidence already present
 
----
+- Versioned nested-selection release reports, failed-trial archive, private outer-fold audit and exact source hashes.
+- Fixed deployed-configuration OOF Lab evaluation, including per-target calibration folds and saved thresholds; clearly separated from nested procedure scores.
+- Aggregate FN/FP analysis, majority baseline, class support and exploratory sex/age/DM/HTN subgroup denominators. Small subgroup estimates are unstable and are not fairness validation.
+- Contract, leakage, persistence, explanation and deployment tests. Software tests establish behavior, not patient benefit.
 
-## 3. TreeSHAP Local & Global Explanations
+## Evidence still required for clinical-sector use
 
-To satisfy clinical governance standards, black-box predictions are avoided. CardioVision AI employs TreeSHAP (SHapley Additive exPlanations):
+1. Clinician-defined intended use, population, workflow, target definition and acceptable false-negative/false-positive tradeoff.
+2. Representative independent data with patient/site/time separation and appropriate permissions; missing-input and prevalence shift studies.
+3. Prespecified external/prospective evaluation, calibration, uncertainty and adequately powered subgroup analysis; comparison against appropriate clinical baselines.
+4. Human factors/workflow evaluation with clinician oversight, monitoring and incident response; security and privacy assessment appropriate to deployment.
+5. Jurisdiction-specific governance and regulatory review where the intended use requires it. No compliance or certification is claimed by this repository.
 
-$$f(x) = \phi_0 + \sum_{i=1}^{M} \phi_i(x)$$
-
-Where:
-- $\phi_0$ is the baseline expected log-odds across the patient population.
-- $\phi_i(x)$ is the exact marginal attribution of patient feature $i$.
-- $\phi_i > 0$ increases the predicted probability of stenosis.
-- $\phi_i < 0$ acts protectively, decreasing predicted probability of stenosis.
+The supplied dataset cannot resolve these external dependencies by more repeated tuning. Existing probability and anatomy limitations must remain visible in demonstrations and exports.

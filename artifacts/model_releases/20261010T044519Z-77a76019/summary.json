@@ -1,0 +1,1930 @@
+{
+  "baseline_model_sha256": "ee7b9d32a9b45b2b291c81ea93244a8188fa24ad77913732bc916b737f929e16",
+  "candidate_calibration_folds": 3,
+  "dataset_sha256": "739343245c2ba578b541370217531750d8e936022f928b83e0d91756caa3ff0b",
+  "deployed": true,
+  "feature_count": 84,
+  "generated_at": "2026-10-10T04:45:19.858277+00:00",
+  "inner_folds": 3,
+  "library_versions": {
+    "catboost": "1.2.10",
+    "joblib": "1.6.0",
+    "lightgbm": "4.6.0",
+    "numpy": "2.4.6",
+    "pandas": "3.0.6",
+    "scikit-learn": "1.7.1",
+    "xgboost": "3.2.0"
+  },
+  "limitations": [
+    "Internal single-cohort evaluation, not external clinical validation.",
+    "Earlier configurations were developed on this cohort; historical selection bias remains.",
+    "Outer metrics evaluate the selection procedure, not the final full-cohort fitted weights.",
+    "Promotion is chosen after seeing outer metrics; release-level selection adds optimism. Gains are descriptive and not evidence of statistical significance.",
+    "Final configuration and threshold are selected on full-cohort inner OOF data, not on outer-test predictions.",
+    "Independent XGBoost SHAP explanations remain surrogate attributions, not exact explanations of the calibrated predictor.",
+    "Clinical proxies and RWMA territory assumptions are preserved for compatibility. Recorded-feature ablations are available in the broad search; the RCA shortlist uses full features.",
+    "The RCA shortlist follows an unsuccessful broader tuning trial on this same cohort. This additional experiment increases historical selection bias.",
+    "Classification thresholds are separate from the 35%/65% artery display bands."
+  ],
+  "method": "Paired stratified 10-fold outer evaluation; 3-fold inner model/threshold selection for RCA; sigmoid calibration within each estimator fit. Other targets retain their current configuration and threshold.",
+  "outer_folds": 10,
+  "promotion_rule": "Accuracy must increase; recall and ROC-AUC may fall by at most 0.02; Brier score may increase by at most 0.01. These tolerances are engineering release rules, not clinical boundaries.",
+  "random_seed": 42,
+  "record_count": 303,
+  "release_model_sha256": "0138162c96a87500b8d8abf0132f831b938b89b5f62e4277f022d0482a3de544",
+  "run_id": "20261010T044519Z-77a76019",
+  "source_hashes": {
+    "backend/cardio/constants.py": "ad7a009f5578506d211472b85657a2d68fabee4d551b2571b9e9e5ea4367bdc9",
+    "backend/cardio/service/feature_service.py": "833d51159ff785fab539803f3a2d31c4197eacb0e59654af56a52707c8366c44",
+    "backend/model_quality/improvement.py": "7df70a2535ce48cdd6de6b1b1b7c36cdda56b0b949533d509df15e702c74b53e",
+    "backend/model_quality/metrics.py": "712c893fabc63ad832a181a42c0504ef48bea475e31a9b671bb14871e2da4977",
+    "backend/model_quality/models.py": "591f8c23f13d4f6e17474595df2fcbab33a523caf1a61af41a35677d9645d392",
+    "backend/requirements.lock.txt": "90381dd3a59472ce63b44a3b8603e489e5328778a83ea349dcae77abb6f740f0",
+    "scripts/improve_models.py": "f27a7335988fd2cd2035335edafdcd28e25cb6151661c66815532af4e15e40e6"
+  },
+  "targets": {
+    "CAD": {
+      "baseline_metrics": {
+        "accuracy": 0.8877887788778878,
+        "average_precision": 0.9764020028692479,
+        "balanced_accuracy": 0.8492177522349935,
+        "brier_score": 0.07965880808975781,
+        "cohen_kappa": 0.7181549573210768,
+        "ece": 0.05425339871019938,
+        "f1": 0.9227272727272727,
+        "fn": 13,
+        "fp": 21,
+        "log_loss": 0.2738269727822608,
+        "mcc": 0.719739363339067,
+        "pr_auc": 0.976338291637641,
+        "precision": 0.90625,
+        "recall": 0.9398148148148148,
+        "roc_auc": 0.9455619412515963,
+        "sensitivity": 0.9398148148148148,
+        "specificity": 0.7586206896551724,
+        "threshold": 0.5,
+        "tn": 66,
+        "tp": 203
+      },
+      "baseline_threshold": 0.5,
+      "candidate_metrics": {
+        "accuracy": 0.8877887788778878,
+        "average_precision": 0.9764020028692479,
+        "balanced_accuracy": 0.8492177522349935,
+        "brier_score": 0.07965880808975781,
+        "cohen_kappa": 0.7181549573210768,
+        "ece": 0.05425339871019938,
+        "f1": 0.9227272727272727,
+        "fn": 13,
+        "fp": 21,
+        "log_loss": 0.2738269727822608,
+        "mcc": 0.719739363339067,
+        "pr_auc": 0.976338291637641,
+        "precision": 0.90625,
+        "recall": 0.9398148148148148,
+        "roc_auc": 0.9455619412515963,
+        "sensitivity": 0.9398148148148148,
+        "specificity": 0.7586206896551724,
+        "threshold": 0.5,
+        "tn": 66,
+        "tp": 203
+      },
+      "class_distribution": {
+        "negative": 87,
+        "positive": 216
+      },
+      "configuration_parameters": {
+        "Baseline": {
+          "class": "sklearn.calibration.CalibratedClassifierCV",
+          "parameters": {
+            "cv": 5,
+            "ensemble": "auto",
+            "estimator": {
+              "class": "sklearn.ensemble._voting.VotingClassifier",
+              "parameters": {
+                "estimators": [
+                  [
+                    "catboost",
+                    {
+                      "class": "catboost.core.CatBoostClassifier",
+                      "parameters": {
+                        "allow_writing_files": false,
+                        "depth": 4,
+                        "iterations": 200,
+                        "l2_leaf_reg": 4.0,
+                        "learning_rate": 0.03,
+                        "random_seed": 42,
+                        "thread_count": 1,
+                        "verbose": 0
+                      }
+                    }
+                  ],
+                  [
+                    "xgboost",
+                    {
+                      "class": "xgboost.sklearn.XGBClassifier",
+                      "parameters": {
+                        "base_score": null,
+                        "booster": null,
+                        "callbacks": null,
+                        "colsample_bylevel": null,
+                        "colsample_bynode": null,
+                        "colsample_bytree": 0.7,
+                        "device": null,
+                        "early_stopping_rounds": null,
+                        "enable_categorical": false,
+                        "eval_metric": "logloss",
+                        "feature_types": null,
+                        "feature_weights": null,
+                        "gamma": null,
+                        "grow_policy": null,
+                        "importance_type": null,
+                        "interaction_constraints": null,
+                        "learning_rate": 0.03,
+                        "max_bin": null,
+                        "max_cat_threshold": null,
+                        "max_cat_to_onehot": null,
+                        "max_delta_step": null,
+                        "max_depth": 3,
+                        "max_leaves": null,
+                        "min_child_weight": null,
+                        "missing": "nan",
+                        "monotone_constraints": null,
+                        "multi_strategy": null,
+                        "n_estimators": 140,
+                        "n_jobs": 1,
+                        "num_parallel_tree": null,
+                        "objective": "binary:logistic",
+                        "random_state": 42,
+                        "reg_alpha": 0.5,
+                        "reg_lambda": 2.0,
+                        "sampling_method": null,
+                        "scale_pos_weight": null,
+                        "subsample": 0.8,
+                        "tree_method": null,
+                        "validate_parameters": null,
+                        "verbosity": null
+                      }
+                    }
+                  ],
+                  [
+                    "lightgbm",
+                    {
+                      "class": "lightgbm.sklearn.LGBMClassifier",
+                      "parameters": {
+                        "boosting_type": "gbdt",
+                        "class_weight": null,
+                        "colsample_bytree": 0.7,
+                        "importance_type": "split",
+                        "learning_rate": 0.03,
+                        "max_depth": 3,
+                        "min_child_samples": 20,
+                        "min_child_weight": 0.001,
+                        "min_split_gain": 0.0,
+                        "n_estimators": 140,
+                        "n_jobs": 1,
+                        "num_leaves": 14,
+                        "objective": null,
+                        "random_state": 42,
+                        "reg_alpha": 0.5,
+                        "reg_lambda": 2.0,
+                        "subsample": 0.8,
+                        "subsample_for_bin": 200000,
+                        "subsample_freq": 0,
+                        "verbose": -1
+                      }
+                    }
+                  ],
+                  [
+                    "rf",
+                    {
+                      "class": "sklearn.ensemble._forest.RandomForestClassifier",
+                      "parameters": {
+                        "bootstrap": true,
+                        "ccp_alpha": 0.0,
+                        "class_weight": "balanced",
+                        "criterion": "gini",
+                        "max_depth": 5,
+                        "max_features": "sqrt",
+                        "max_leaf_nodes": null,
+                        "max_samples": null,
+                        "min_impurity_decrease": 0.0,
+                        "min_samples_leaf": 2,
+                        "min_samples_split": 2,
+                        "min_weight_fraction_leaf": 0.0,
+                        "monotonic_cst": null,
+                        "n_estimators": 180,
+                        "n_jobs": 1,
+                        "oob_score": false,
+                        "random_state": 42,
+                        "verbose": 0,
+                        "warm_start": false
+                      }
+                    }
+                  ],
+                  [
+                    "et",
+                    {
+                      "class": "sklearn.ensemble._forest.ExtraTreesClassifier",
+                      "parameters": {
+                        "bootstrap": false,
+                        "ccp_alpha": 0.0,
+                        "class_weight": "balanced",
+                        "criterion": "gini",
+                        "max_depth": 5,
+                        "max_features": "sqrt",
+                        "max_leaf_nodes": null,
+                        "max_samples": null,
+                        "min_impurity_decrease": 0.0,
+                        "min_samples_leaf": 2,
+                        "min_samples_split": 2,
+                        "min_weight_fraction_leaf": 0.0,
+                        "monotonic_cst": null,
+                        "n_estimators": 180,
+                        "n_jobs": 1,
+                        "oob_score": false,
+                        "random_state": 42,
+                        "verbose": 0,
+                        "warm_start": false
+                      }
+                    }
+                  ]
+                ],
+                "flatten_transform": true,
+                "n_jobs": 1,
+                "verbose": false,
+                "voting": "soft",
+                "weights": null
+              }
+            },
+            "method": "sigmoid",
+            "n_jobs": 1
+          }
+        }
+      },
+      "final_selection": {
+        "model": "Baseline",
+        "threshold": 0.5
+      },
+      "fold_selections": [
+        {
+          "fold": 1,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 2,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 3,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 4,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 5,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 6,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 7,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 8,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 9,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 10,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        }
+      ],
+      "model_name": "Existing sigmoid-calibrated voting ensemble",
+      "outer_selected_models": {
+        "Baseline": 10
+      },
+      "promoted": false,
+      "release_procedure_metrics": {
+        "accuracy": 0.8877887788778878,
+        "average_precision": 0.9764020028692479,
+        "balanced_accuracy": 0.8492177522349935,
+        "brier_score": 0.07965880808975781,
+        "cohen_kappa": 0.7181549573210768,
+        "ece": 0.05425339871019938,
+        "f1": 0.9227272727272727,
+        "fn": 13,
+        "fp": 21,
+        "log_loss": 0.2738269727822608,
+        "mcc": 0.719739363339067,
+        "pr_auc": 0.976338291637641,
+        "precision": 0.90625,
+        "recall": 0.9398148148148148,
+        "roc_auc": 0.9455619412515963,
+        "sensitivity": 0.9398148148148148,
+        "specificity": 0.7586206896551724,
+        "threshold": 0.5,
+        "tn": 66,
+        "tp": 203
+      }
+    },
+    "LAD": {
+      "baseline_metrics": {
+        "accuracy": 0.8052805280528053,
+        "average_precision": 0.8942385688059062,
+        "balanced_accuracy": 0.791027710519236,
+        "brier_score": 0.14211456824053587,
+        "cohen_kappa": 0.592212413604325,
+        "ece": 0.03568311462341285,
+        "f1": 0.8401084010840109,
+        "fn": 22,
+        "fp": 37,
+        "log_loss": 0.44406884067553065,
+        "mcc": 0.5954209899232623,
+        "pr_auc": 0.8938247838834432,
+        "precision": 0.8072916666666666,
+        "recall": 0.8757062146892656,
+        "roc_auc": 0.8683526141153259,
+        "sensitivity": 0.8757062146892656,
+        "specificity": 0.7063492063492064,
+        "threshold": 0.5,
+        "tn": 89,
+        "tp": 155
+      },
+      "baseline_threshold": 0.5,
+      "candidate_metrics": {
+        "accuracy": 0.8052805280528053,
+        "average_precision": 0.8942385688059062,
+        "balanced_accuracy": 0.791027710519236,
+        "brier_score": 0.14211456824053587,
+        "cohen_kappa": 0.592212413604325,
+        "ece": 0.03568311462341285,
+        "f1": 0.8401084010840109,
+        "fn": 22,
+        "fp": 37,
+        "log_loss": 0.44406884067553065,
+        "mcc": 0.5954209899232623,
+        "pr_auc": 0.8938247838834432,
+        "precision": 0.8072916666666666,
+        "recall": 0.8757062146892656,
+        "roc_auc": 0.8683526141153259,
+        "sensitivity": 0.8757062146892656,
+        "specificity": 0.7063492063492064,
+        "threshold": 0.5,
+        "tn": 89,
+        "tp": 155
+      },
+      "class_distribution": {
+        "negative": 126,
+        "positive": 177
+      },
+      "configuration_parameters": {
+        "Baseline": {
+          "class": "sklearn.calibration.CalibratedClassifierCV",
+          "parameters": {
+            "cv": 5,
+            "ensemble": "auto",
+            "estimator": {
+              "class": "sklearn.ensemble._voting.VotingClassifier",
+              "parameters": {
+                "estimators": [
+                  [
+                    "catboost",
+                    {
+                      "class": "catboost.core.CatBoostClassifier",
+                      "parameters": {
+                        "allow_writing_files": false,
+                        "depth": 4,
+                        "iterations": 200,
+                        "l2_leaf_reg": 4.0,
+                        "learning_rate": 0.03,
+                        "random_seed": 42,
+                        "thread_count": 1,
+                        "verbose": 0
+                      }
+                    }
+                  ],
+                  [
+                    "xgboost",
+                    {
+                      "class": "xgboost.sklearn.XGBClassifier",
+                      "parameters": {
+                        "base_score": null,
+                        "booster": null,
+                        "callbacks": null,
+                        "colsample_bylevel": null,
+                        "colsample_bynode": null,
+                        "colsample_bytree": 0.7,
+                        "device": null,
+                        "early_stopping_rounds": null,
+                        "enable_categorical": false,
+                        "eval_metric": "logloss",
+                        "feature_types": null,
+                        "feature_weights": null,
+                        "gamma": null,
+                        "grow_policy": null,
+                        "importance_type": null,
+                        "interaction_constraints": null,
+                        "learning_rate": 0.03,
+                        "max_bin": null,
+                        "max_cat_threshold": null,
+                        "max_cat_to_onehot": null,
+                        "max_delta_step": null,
+                        "max_depth": 3,
+                        "max_leaves": null,
+                        "min_child_weight": null,
+                        "missing": "nan",
+                        "monotone_constraints": null,
+                        "multi_strategy": null,
+                        "n_estimators": 140,
+                        "n_jobs": 1,
+                        "num_parallel_tree": null,
+                        "objective": "binary:logistic",
+                        "random_state": 42,
+                        "reg_alpha": 0.5,
+                        "reg_lambda": 2.0,
+                        "sampling_method": null,
+                        "scale_pos_weight": null,
+                        "subsample": 0.8,
+                        "tree_method": null,
+                        "validate_parameters": null,
+                        "verbosity": null
+                      }
+                    }
+                  ],
+                  [
+                    "lightgbm",
+                    {
+                      "class": "lightgbm.sklearn.LGBMClassifier",
+                      "parameters": {
+                        "boosting_type": "gbdt",
+                        "class_weight": null,
+                        "colsample_bytree": 0.7,
+                        "importance_type": "split",
+                        "learning_rate": 0.03,
+                        "max_depth": 3,
+                        "min_child_samples": 20,
+                        "min_child_weight": 0.001,
+                        "min_split_gain": 0.0,
+                        "n_estimators": 140,
+                        "n_jobs": 1,
+                        "num_leaves": 14,
+                        "objective": null,
+                        "random_state": 42,
+                        "reg_alpha": 0.5,
+                        "reg_lambda": 2.0,
+                        "subsample": 0.8,
+                        "subsample_for_bin": 200000,
+                        "subsample_freq": 0,
+                        "verbose": -1
+                      }
+                    }
+                  ],
+                  [
+                    "rf",
+                    {
+                      "class": "sklearn.ensemble._forest.RandomForestClassifier",
+                      "parameters": {
+                        "bootstrap": true,
+                        "ccp_alpha": 0.0,
+                        "class_weight": "balanced",
+                        "criterion": "gini",
+                        "max_depth": 5,
+                        "max_features": "sqrt",
+                        "max_leaf_nodes": null,
+                        "max_samples": null,
+                        "min_impurity_decrease": 0.0,
+                        "min_samples_leaf": 2,
+                        "min_samples_split": 2,
+                        "min_weight_fraction_leaf": 0.0,
+                        "monotonic_cst": null,
+                        "n_estimators": 180,
+                        "n_jobs": 1,
+                        "oob_score": false,
+                        "random_state": 42,
+                        "verbose": 0,
+                        "warm_start": false
+                      }
+                    }
+                  ],
+                  [
+                    "et",
+                    {
+                      "class": "sklearn.ensemble._forest.ExtraTreesClassifier",
+                      "parameters": {
+                        "bootstrap": false,
+                        "ccp_alpha": 0.0,
+                        "class_weight": "balanced",
+                        "criterion": "gini",
+                        "max_depth": 5,
+                        "max_features": "sqrt",
+                        "max_leaf_nodes": null,
+                        "max_samples": null,
+                        "min_impurity_decrease": 0.0,
+                        "min_samples_leaf": 2,
+                        "min_samples_split": 2,
+                        "min_weight_fraction_leaf": 0.0,
+                        "monotonic_cst": null,
+                        "n_estimators": 180,
+                        "n_jobs": 1,
+                        "oob_score": false,
+                        "random_state": 42,
+                        "verbose": 0,
+                        "warm_start": false
+                      }
+                    }
+                  ]
+                ],
+                "flatten_transform": true,
+                "n_jobs": 1,
+                "verbose": false,
+                "voting": "soft",
+                "weights": null
+              }
+            },
+            "method": "sigmoid",
+            "n_jobs": 1
+          }
+        }
+      },
+      "final_selection": {
+        "model": "Baseline",
+        "threshold": 0.5
+      },
+      "fold_selections": [
+        {
+          "fold": 1,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 2,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 3,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 4,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 5,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 6,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 7,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 8,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 9,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 10,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        }
+      ],
+      "model_name": "Existing sigmoid-calibrated voting ensemble",
+      "outer_selected_models": {
+        "Baseline": 10
+      },
+      "promoted": false,
+      "release_procedure_metrics": {
+        "accuracy": 0.8052805280528053,
+        "average_precision": 0.8942385688059062,
+        "balanced_accuracy": 0.791027710519236,
+        "brier_score": 0.14211456824053587,
+        "cohen_kappa": 0.592212413604325,
+        "ece": 0.03568311462341285,
+        "f1": 0.8401084010840109,
+        "fn": 22,
+        "fp": 37,
+        "log_loss": 0.44406884067553065,
+        "mcc": 0.5954209899232623,
+        "pr_auc": 0.8938247838834432,
+        "precision": 0.8072916666666666,
+        "recall": 0.8757062146892656,
+        "roc_auc": 0.8683526141153259,
+        "sensitivity": 0.8757062146892656,
+        "specificity": 0.7063492063492064,
+        "threshold": 0.5,
+        "tn": 89,
+        "tp": 155
+      }
+    },
+    "LCX": {
+      "baseline_metrics": {
+        "accuracy": 0.7128712871287128,
+        "average_precision": 0.6098104109184739,
+        "balanced_accuracy": 0.6849196200219219,
+        "brier_score": 0.19425020148607225,
+        "cohen_kappa": 0.38057193881147644,
+        "ece": 0.06156694799880836,
+        "f1": 0.6027397260273972,
+        "fn": 53,
+        "fp": 34,
+        "log_loss": 0.5710432350080034,
+        "mcc": 0.38410270113405237,
+        "pr_auc": 0.6030552744596018,
+        "precision": 0.66,
+        "recall": 0.5546218487394958,
+        "roc_auc": 0.7606868834490317,
+        "sensitivity": 0.5546218487394958,
+        "specificity": 0.8152173913043478,
+        "threshold": 0.5,
+        "tn": 150,
+        "tp": 66
+      },
+      "baseline_threshold": 0.5,
+      "candidate_metrics": {
+        "accuracy": 0.7128712871287128,
+        "average_precision": 0.6098104109184739,
+        "balanced_accuracy": 0.6849196200219219,
+        "brier_score": 0.19425020148607225,
+        "cohen_kappa": 0.38057193881147644,
+        "ece": 0.06156694799880836,
+        "f1": 0.6027397260273972,
+        "fn": 53,
+        "fp": 34,
+        "log_loss": 0.5710432350080034,
+        "mcc": 0.38410270113405237,
+        "pr_auc": 0.6030552744596018,
+        "precision": 0.66,
+        "recall": 0.5546218487394958,
+        "roc_auc": 0.7606868834490317,
+        "sensitivity": 0.5546218487394958,
+        "specificity": 0.8152173913043478,
+        "threshold": 0.5,
+        "tn": 150,
+        "tp": 66
+      },
+      "class_distribution": {
+        "negative": 184,
+        "positive": 119
+      },
+      "configuration_parameters": {
+        "Baseline": {
+          "class": "sklearn.calibration.CalibratedClassifierCV",
+          "parameters": {
+            "cv": 5,
+            "ensemble": "auto",
+            "estimator": {
+              "class": "sklearn.ensemble._voting.VotingClassifier",
+              "parameters": {
+                "estimators": [
+                  [
+                    "catboost",
+                    {
+                      "class": "catboost.core.CatBoostClassifier",
+                      "parameters": {
+                        "allow_writing_files": false,
+                        "depth": 4,
+                        "iterations": 200,
+                        "l2_leaf_reg": 4.0,
+                        "learning_rate": 0.03,
+                        "random_seed": 42,
+                        "thread_count": 1,
+                        "verbose": 0
+                      }
+                    }
+                  ],
+                  [
+                    "xgboost",
+                    {
+                      "class": "xgboost.sklearn.XGBClassifier",
+                      "parameters": {
+                        "base_score": null,
+                        "booster": null,
+                        "callbacks": null,
+                        "colsample_bylevel": null,
+                        "colsample_bynode": null,
+                        "colsample_bytree": 0.7,
+                        "device": null,
+                        "early_stopping_rounds": null,
+                        "enable_categorical": false,
+                        "eval_metric": "logloss",
+                        "feature_types": null,
+                        "feature_weights": null,
+                        "gamma": null,
+                        "grow_policy": null,
+                        "importance_type": null,
+                        "interaction_constraints": null,
+                        "learning_rate": 0.03,
+                        "max_bin": null,
+                        "max_cat_threshold": null,
+                        "max_cat_to_onehot": null,
+                        "max_delta_step": null,
+                        "max_depth": 3,
+                        "max_leaves": null,
+                        "min_child_weight": null,
+                        "missing": "nan",
+                        "monotone_constraints": null,
+                        "multi_strategy": null,
+                        "n_estimators": 140,
+                        "n_jobs": 1,
+                        "num_parallel_tree": null,
+                        "objective": "binary:logistic",
+                        "random_state": 42,
+                        "reg_alpha": 0.5,
+                        "reg_lambda": 2.0,
+                        "sampling_method": null,
+                        "scale_pos_weight": null,
+                        "subsample": 0.8,
+                        "tree_method": null,
+                        "validate_parameters": null,
+                        "verbosity": null
+                      }
+                    }
+                  ],
+                  [
+                    "lightgbm",
+                    {
+                      "class": "lightgbm.sklearn.LGBMClassifier",
+                      "parameters": {
+                        "boosting_type": "gbdt",
+                        "class_weight": null,
+                        "colsample_bytree": 0.7,
+                        "importance_type": "split",
+                        "learning_rate": 0.03,
+                        "max_depth": 3,
+                        "min_child_samples": 20,
+                        "min_child_weight": 0.001,
+                        "min_split_gain": 0.0,
+                        "n_estimators": 140,
+                        "n_jobs": 1,
+                        "num_leaves": 14,
+                        "objective": null,
+                        "random_state": 42,
+                        "reg_alpha": 0.5,
+                        "reg_lambda": 2.0,
+                        "subsample": 0.8,
+                        "subsample_for_bin": 200000,
+                        "subsample_freq": 0,
+                        "verbose": -1
+                      }
+                    }
+                  ],
+                  [
+                    "rf",
+                    {
+                      "class": "sklearn.ensemble._forest.RandomForestClassifier",
+                      "parameters": {
+                        "bootstrap": true,
+                        "ccp_alpha": 0.0,
+                        "class_weight": "balanced",
+                        "criterion": "gini",
+                        "max_depth": 5,
+                        "max_features": "sqrt",
+                        "max_leaf_nodes": null,
+                        "max_samples": null,
+                        "min_impurity_decrease": 0.0,
+                        "min_samples_leaf": 2,
+                        "min_samples_split": 2,
+                        "min_weight_fraction_leaf": 0.0,
+                        "monotonic_cst": null,
+                        "n_estimators": 180,
+                        "n_jobs": 1,
+                        "oob_score": false,
+                        "random_state": 42,
+                        "verbose": 0,
+                        "warm_start": false
+                      }
+                    }
+                  ],
+                  [
+                    "et",
+                    {
+                      "class": "sklearn.ensemble._forest.ExtraTreesClassifier",
+                      "parameters": {
+                        "bootstrap": false,
+                        "ccp_alpha": 0.0,
+                        "class_weight": "balanced",
+                        "criterion": "gini",
+                        "max_depth": 5,
+                        "max_features": "sqrt",
+                        "max_leaf_nodes": null,
+                        "max_samples": null,
+                        "min_impurity_decrease": 0.0,
+                        "min_samples_leaf": 2,
+                        "min_samples_split": 2,
+                        "min_weight_fraction_leaf": 0.0,
+                        "monotonic_cst": null,
+                        "n_estimators": 180,
+                        "n_jobs": 1,
+                        "oob_score": false,
+                        "random_state": 42,
+                        "verbose": 0,
+                        "warm_start": false
+                      }
+                    }
+                  ]
+                ],
+                "flatten_transform": true,
+                "n_jobs": 1,
+                "verbose": false,
+                "voting": "soft",
+                "weights": null
+              }
+            },
+            "method": "sigmoid",
+            "n_jobs": 1
+          }
+        }
+      },
+      "final_selection": {
+        "model": "Baseline",
+        "threshold": 0.5
+      },
+      "fold_selections": [
+        {
+          "fold": 1,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 2,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 3,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 4,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 5,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 6,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 7,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 8,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 9,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 10,
+          "inner_baseline_metrics": null,
+          "inner_metrics": null,
+          "model": "Baseline",
+          "threshold": 0.5
+        }
+      ],
+      "model_name": "Existing sigmoid-calibrated voting ensemble",
+      "outer_selected_models": {
+        "Baseline": 10
+      },
+      "promoted": false,
+      "release_procedure_metrics": {
+        "accuracy": 0.7128712871287128,
+        "average_precision": 0.6098104109184739,
+        "balanced_accuracy": 0.6849196200219219,
+        "brier_score": 0.19425020148607225,
+        "cohen_kappa": 0.38057193881147644,
+        "ece": 0.06156694799880836,
+        "f1": 0.6027397260273972,
+        "fn": 53,
+        "fp": 34,
+        "log_loss": 0.5710432350080034,
+        "mcc": 0.38410270113405237,
+        "pr_auc": 0.6030552744596018,
+        "precision": 0.66,
+        "recall": 0.5546218487394958,
+        "roc_auc": 0.7606868834490317,
+        "sensitivity": 0.5546218487394958,
+        "specificity": 0.8152173913043478,
+        "threshold": 0.5,
+        "tn": 150,
+        "tp": 66
+      }
+    },
+    "RCA": {
+      "baseline_metrics": {
+        "accuracy": 0.6765676567656765,
+        "average_precision": 0.5936324168178597,
+        "balanced_accuracy": 0.6328320802005012,
+        "brier_score": 0.19816439141742143,
+        "cohen_kappa": 0.27825579699577074,
+        "ece": 0.048664695347861456,
+        "f1": 0.5148514851485149,
+        "fn": 62,
+        "fp": 36,
+        "log_loss": 0.5782297903758922,
+        "mcc": 0.2835017416764494,
+        "pr_auc": 0.5888104166359427,
+        "precision": 0.5909090909090909,
+        "recall": 0.45614035087719296,
+        "roc_auc": 0.7408799777220829,
+        "sensitivity": 0.45614035087719296,
+        "specificity": 0.8095238095238095,
+        "threshold": 0.5,
+        "tn": 153,
+        "tp": 52
+      },
+      "baseline_threshold": 0.5,
+      "candidate_metrics": {
+        "accuracy": 0.6831683168316832,
+        "average_precision": 0.6020362112757327,
+        "balanced_accuracy": 0.6572681704260652,
+        "brier_score": 0.19721581057181725,
+        "cohen_kappa": 0.3178556352891515,
+        "ece": 0.05372083648789154,
+        "f1": 0.5675675675675675,
+        "fn": 51,
+        "fp": 45,
+        "log_loss": 0.5777662952572067,
+        "mcc": 0.318144906417405,
+        "pr_auc": 0.5985972568048323,
+        "precision": 0.5833333333333334,
+        "recall": 0.5526315789473685,
+        "roc_auc": 0.7438039543302702,
+        "sensitivity": 0.5526315789473685,
+        "specificity": 0.7619047619047619,
+        "threshold": 0.5,
+        "tn": 144,
+        "tp": 63
+      },
+      "class_distribution": {
+        "negative": 189,
+        "positive": 114
+      },
+      "configuration_parameters": {
+        "Baseline": {
+          "class": "sklearn.calibration.CalibratedClassifierCV",
+          "parameters": {
+            "cv": 5,
+            "ensemble": "auto",
+            "estimator": {
+              "class": "sklearn.ensemble._voting.VotingClassifier",
+              "parameters": {
+                "estimators": [
+                  [
+                    "catboost",
+                    {
+                      "class": "catboost.core.CatBoostClassifier",
+                      "parameters": {
+                        "allow_writing_files": false,
+                        "depth": 4,
+                        "iterations": 200,
+                        "l2_leaf_reg": 4.0,
+                        "learning_rate": 0.03,
+                        "random_seed": 42,
+                        "thread_count": 1,
+                        "verbose": 0
+                      }
+                    }
+                  ],
+                  [
+                    "xgboost",
+                    {
+                      "class": "xgboost.sklearn.XGBClassifier",
+                      "parameters": {
+                        "base_score": null,
+                        "booster": null,
+                        "callbacks": null,
+                        "colsample_bylevel": null,
+                        "colsample_bynode": null,
+                        "colsample_bytree": 0.7,
+                        "device": null,
+                        "early_stopping_rounds": null,
+                        "enable_categorical": false,
+                        "eval_metric": "logloss",
+                        "feature_types": null,
+                        "feature_weights": null,
+                        "gamma": null,
+                        "grow_policy": null,
+                        "importance_type": null,
+                        "interaction_constraints": null,
+                        "learning_rate": 0.03,
+                        "max_bin": null,
+                        "max_cat_threshold": null,
+                        "max_cat_to_onehot": null,
+                        "max_delta_step": null,
+                        "max_depth": 3,
+                        "max_leaves": null,
+                        "min_child_weight": null,
+                        "missing": "nan",
+                        "monotone_constraints": null,
+                        "multi_strategy": null,
+                        "n_estimators": 140,
+                        "n_jobs": 1,
+                        "num_parallel_tree": null,
+                        "objective": "binary:logistic",
+                        "random_state": 42,
+                        "reg_alpha": 0.5,
+                        "reg_lambda": 2.0,
+                        "sampling_method": null,
+                        "scale_pos_weight": null,
+                        "subsample": 0.8,
+                        "tree_method": null,
+                        "validate_parameters": null,
+                        "verbosity": null
+                      }
+                    }
+                  ],
+                  [
+                    "lightgbm",
+                    {
+                      "class": "lightgbm.sklearn.LGBMClassifier",
+                      "parameters": {
+                        "boosting_type": "gbdt",
+                        "class_weight": null,
+                        "colsample_bytree": 0.7,
+                        "importance_type": "split",
+                        "learning_rate": 0.03,
+                        "max_depth": 3,
+                        "min_child_samples": 20,
+                        "min_child_weight": 0.001,
+                        "min_split_gain": 0.0,
+                        "n_estimators": 140,
+                        "n_jobs": 1,
+                        "num_leaves": 14,
+                        "objective": null,
+                        "random_state": 42,
+                        "reg_alpha": 0.5,
+                        "reg_lambda": 2.0,
+                        "subsample": 0.8,
+                        "subsample_for_bin": 200000,
+                        "subsample_freq": 0,
+                        "verbose": -1
+                      }
+                    }
+                  ],
+                  [
+                    "rf",
+                    {
+                      "class": "sklearn.ensemble._forest.RandomForestClassifier",
+                      "parameters": {
+                        "bootstrap": true,
+                        "ccp_alpha": 0.0,
+                        "class_weight": "balanced",
+                        "criterion": "gini",
+                        "max_depth": 5,
+                        "max_features": "sqrt",
+                        "max_leaf_nodes": null,
+                        "max_samples": null,
+                        "min_impurity_decrease": 0.0,
+                        "min_samples_leaf": 2,
+                        "min_samples_split": 2,
+                        "min_weight_fraction_leaf": 0.0,
+                        "monotonic_cst": null,
+                        "n_estimators": 180,
+                        "n_jobs": 1,
+                        "oob_score": false,
+                        "random_state": 42,
+                        "verbose": 0,
+                        "warm_start": false
+                      }
+                    }
+                  ],
+                  [
+                    "et",
+                    {
+                      "class": "sklearn.ensemble._forest.ExtraTreesClassifier",
+                      "parameters": {
+                        "bootstrap": false,
+                        "ccp_alpha": 0.0,
+                        "class_weight": "balanced",
+                        "criterion": "gini",
+                        "max_depth": 5,
+                        "max_features": "sqrt",
+                        "max_leaf_nodes": null,
+                        "max_samples": null,
+                        "min_impurity_decrease": 0.0,
+                        "min_samples_leaf": 2,
+                        "min_samples_split": 2,
+                        "min_weight_fraction_leaf": 0.0,
+                        "monotonic_cst": null,
+                        "n_estimators": 180,
+                        "n_jobs": 1,
+                        "oob_score": false,
+                        "random_state": 42,
+                        "verbose": 0,
+                        "warm_start": false
+                      }
+                    }
+                  ]
+                ],
+                "flatten_transform": true,
+                "n_jobs": 1,
+                "verbose": false,
+                "voting": "soft",
+                "weights": null
+              }
+            },
+            "method": "sigmoid",
+            "n_jobs": 1
+          }
+        },
+        "LightGBM-d3": {
+          "class": "sklearn.calibration.CalibratedClassifierCV",
+          "parameters": {
+            "cv": 3,
+            "ensemble": "auto",
+            "estimator": {
+              "class": "sklearn.pipeline.Pipeline",
+              "parameters": {
+                "memory": null,
+                "steps": [
+                  [
+                    "impute",
+                    {
+                      "class": "sklearn.impute._base.SimpleImputer",
+                      "parameters": {
+                        "add_indicator": false,
+                        "copy": true,
+                        "fill_value": null,
+                        "keep_empty_features": false,
+                        "missing_values": "nan",
+                        "strategy": "median"
+                      }
+                    }
+                  ],
+                  [
+                    "model",
+                    {
+                      "class": "lightgbm.sklearn.LGBMClassifier",
+                      "parameters": {
+                        "boosting_type": "gbdt",
+                        "class_weight": null,
+                        "colsample_bytree": 0.7,
+                        "importance_type": "split",
+                        "learning_rate": 0.04,
+                        "max_depth": 3,
+                        "min_child_samples": 15,
+                        "min_child_weight": 0.001,
+                        "min_split_gain": 0.0,
+                        "n_estimators": 160,
+                        "n_jobs": 1,
+                        "num_leaves": 7,
+                        "objective": null,
+                        "random_state": 42,
+                        "reg_alpha": 0.5,
+                        "reg_lambda": 4,
+                        "subsample": 0.8,
+                        "subsample_for_bin": 200000,
+                        "subsample_freq": 0,
+                        "verbose": -1
+                      }
+                    }
+                  ]
+                ],
+                "transform_input": null,
+                "verbose": false
+              }
+            },
+            "method": "sigmoid",
+            "n_jobs": 1
+          }
+        },
+        "LightGBM-established": {
+          "class": "sklearn.calibration.CalibratedClassifierCV",
+          "parameters": {
+            "cv": 5,
+            "ensemble": "auto",
+            "estimator": {
+              "class": "sklearn.pipeline.Pipeline",
+              "parameters": {
+                "memory": null,
+                "steps": [
+                  [
+                    "impute",
+                    {
+                      "class": "sklearn.impute._base.SimpleImputer",
+                      "parameters": {
+                        "add_indicator": false,
+                        "copy": true,
+                        "fill_value": null,
+                        "keep_empty_features": false,
+                        "missing_values": "nan",
+                        "strategy": "median"
+                      }
+                    }
+                  ],
+                  [
+                    "model",
+                    {
+                      "class": "lightgbm.sklearn.LGBMClassifier",
+                      "parameters": {
+                        "boosting_type": "gbdt",
+                        "class_weight": null,
+                        "colsample_bytree": 0.7,
+                        "importance_type": "split",
+                        "learning_rate": 0.03,
+                        "max_depth": 3,
+                        "min_child_samples": 20,
+                        "min_child_weight": 0.001,
+                        "min_split_gain": 0.0,
+                        "n_estimators": 140,
+                        "n_jobs": 1,
+                        "num_leaves": 14,
+                        "objective": null,
+                        "random_state": 42,
+                        "reg_alpha": 0.5,
+                        "reg_lambda": 2.0,
+                        "subsample": 0.8,
+                        "subsample_for_bin": 200000,
+                        "subsample_freq": 0,
+                        "verbose": -1
+                      }
+                    }
+                  ]
+                ],
+                "transform_input": null,
+                "verbose": false
+              }
+            },
+            "method": "sigmoid",
+            "n_jobs": 1
+          }
+        }
+      },
+      "final_selection": {
+        "inner_baseline_metrics": {
+          "accuracy": 0.6831683168316832,
+          "average_precision": 0.5892886066366533,
+          "balanced_accuracy": 0.6363826232247285,
+          "brier_score": 0.19821243499962563,
+          "cohen_kappa": 0.2877919788453063,
+          "ece": 0.05403950619695585,
+          "f1": 0.5151515151515151,
+          "fn": 63,
+          "fp": 33,
+          "log_loss": 0.5785158489567578,
+          "mcc": 0.29519613196409483,
+          "pr_auc": 0.5851127985679262,
+          "precision": 0.6071428571428571,
+          "recall": 0.4473684210526316,
+          "roc_auc": 0.7462638076673165,
+          "sensitivity": 0.4473684210526316,
+          "specificity": 0.8253968253968254,
+          "threshold": 0.5,
+          "tn": 156,
+          "tp": 51
+        },
+        "inner_metrics": {
+          "accuracy": 0.7194719471947195,
+          "average_precision": 0.6010935767886316,
+          "balanced_accuracy": 0.7055137844611529,
+          "brier_score": 0.1975355014652146,
+          "cohen_kappa": 0.4074815377182691,
+          "ece": 0.09826741557432289,
+          "f1": 0.6351931330472103,
+          "fn": 40,
+          "fp": 45,
+          "log_loss": 0.5795356563643017,
+          "mcc": 0.40772926838948187,
+          "pr_auc": 0.5969119709692075,
+          "precision": 0.6218487394957983,
+          "recall": 0.6491228070175439,
+          "roc_auc": 0.7611157523438226,
+          "sensitivity": 0.6491228070175439,
+          "specificity": 0.7619047619047619,
+          "threshold": 0.4,
+          "tn": 144,
+          "tp": 74
+        },
+        "model": "LightGBM-d3",
+        "threshold": 0.4
+      },
+      "fold_selections": [
+        {
+          "fold": 1,
+          "inner_baseline_metrics": {
+            "accuracy": 0.6580882352941176,
+            "average_precision": 0.5655383213969197,
+            "balanced_accuracy": 0.6107843137254902,
+            "brier_score": 0.20626368726826638,
+            "cohen_kappa": 0.23298969072164943,
+            "ece": 0.06799547544739737,
+            "f1": 0.48044692737430167,
+            "fn": 59,
+            "fp": 34,
+            "log_loss": 0.5955137174807891,
+            "mcc": 0.2381058938674486,
+            "pr_auc": 0.5604717923202112,
+            "precision": 0.5584415584415584,
+            "recall": 0.4215686274509804,
+            "roc_auc": 0.7171856978085351,
+            "sensitivity": 0.4215686274509804,
+            "specificity": 0.8,
+            "threshold": 0.5,
+            "tn": 136,
+            "tp": 43
+          },
+          "inner_metrics": {
+            "accuracy": 0.6875,
+            "average_precision": 0.6082238148834493,
+            "balanced_accuracy": 0.6598039215686275,
+            "brier_score": 0.20268622050161664,
+            "cohen_kappa": 0.3240556660039762,
+            "ece": 0.05643056080901403,
+            "f1": 0.5685279187817259,
+            "fn": 46,
+            "fp": 39,
+            "log_loss": 0.5896873001269528,
+            "mcc": 0.32455891215862775,
+            "pr_auc": 0.6054615981933769,
+            "precision": 0.5894736842105263,
+            "recall": 0.5490196078431373,
+            "roc_auc": 0.7286620530565167,
+            "sensitivity": 0.5490196078431373,
+            "specificity": 0.7705882352941177,
+            "threshold": 0.45,
+            "tn": 131,
+            "tp": 56
+          },
+          "model": "LightGBM-d3",
+          "threshold": 0.45
+        },
+        {
+          "fold": 2,
+          "inner_baseline_metrics": {
+            "accuracy": 0.6507352941176471,
+            "average_precision": 0.5824681954473259,
+            "balanced_accuracy": 0.6068627450980393,
+            "brier_score": 0.20538263480511876,
+            "cohen_kappa": 0.2229038854805726,
+            "ece": 0.0762745713425458,
+            "f1": 0.4808743169398907,
+            "fn": 58,
+            "fp": 37,
+            "log_loss": 0.5908754996191302,
+            "mcc": 0.22626723790217834,
+            "pr_auc": 0.5789035990357354,
+            "precision": 0.5432098765432098,
+            "recall": 0.43137254901960786,
+            "roc_auc": 0.7170126874279124,
+            "sensitivity": 0.43137254901960786,
+            "specificity": 0.7823529411764706,
+            "threshold": 0.5,
+            "tn": 133,
+            "tp": 44
+          },
+          "inner_metrics": {
+            "accuracy": 0.6727941176470589,
+            "average_precision": 0.55165401660624,
+            "balanced_accuracy": 0.6480392156862745,
+            "brier_score": 0.20562610024669806,
+            "cohen_kappa": 0.29783037475345164,
+            "ece": 0.056826502817146456,
+            "f1": 0.5572139303482587,
+            "fn": 46,
+            "fp": 43,
+            "log_loss": 0.5958365443322853,
+            "mcc": 0.297913832774566,
+            "pr_auc": 0.5461090991255341,
+            "precision": 0.5656565656565656,
+            "recall": 0.5490196078431373,
+            "roc_auc": 0.7192618223760092,
+            "sensitivity": 0.5490196078431373,
+            "specificity": 0.7470588235294118,
+            "threshold": 0.45,
+            "tn": 127,
+            "tp": 56
+          },
+          "model": "LightGBM-d3",
+          "threshold": 0.45
+        },
+        {
+          "fold": 3,
+          "inner_baseline_metrics": {
+            "accuracy": 0.7095588235294118,
+            "average_precision": 0.637892205174447,
+            "balanced_accuracy": 0.6558823529411765,
+            "brier_score": 0.19712521656243062,
+            "cohen_kappa": 0.3347368421052631,
+            "ece": 0.08638555874946661,
+            "f1": 0.5325443786982249,
+            "fn": 57,
+            "fp": 22,
+            "log_loss": 0.5762682443656731,
+            "mcc": 0.3502976008676679,
+            "pr_auc": 0.6353915244089027,
+            "precision": 0.6716417910447762,
+            "recall": 0.4411764705882353,
+            "roc_auc": 0.7457324106113034,
+            "sensitivity": 0.4411764705882353,
+            "specificity": 0.8705882352941177,
+            "threshold": 0.5,
+            "tn": 148,
+            "tp": 45
+          },
+          "inner_metrics": {
+            "accuracy": 0.7095588235294118,
+            "average_precision": 0.637892205174447,
+            "balanced_accuracy": 0.6558823529411765,
+            "brier_score": 0.19712521656243062,
+            "cohen_kappa": 0.3347368421052631,
+            "ece": 0.08638555874946661,
+            "f1": 0.5325443786982249,
+            "fn": 57,
+            "fp": 22,
+            "log_loss": 0.5762682443656731,
+            "mcc": 0.3502976008676679,
+            "pr_auc": 0.6353915244089027,
+            "precision": 0.6716417910447762,
+            "recall": 0.4411764705882353,
+            "roc_auc": 0.7457324106113034,
+            "sensitivity": 0.4411764705882353,
+            "specificity": 0.8705882352941177,
+            "threshold": 0.5,
+            "tn": 148,
+            "tp": 45
+          },
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 4,
+          "inner_baseline_metrics": {
+            "accuracy": 0.6666666666666666,
+            "average_precision": 0.5953224156885821,
+            "balanced_accuracy": 0.6132610939112487,
+            "brier_score": 0.20135773365734314,
+            "cohen_kappa": 0.24131928538708203,
+            "ece": 0.045364940713091974,
+            "f1": 0.47398843930635837,
+            "fn": 61,
+            "fp": 30,
+            "log_loss": 0.5850630234364019,
+            "mcc": 0.24980666964595177,
+            "pr_auc": 0.592496511602795,
+            "precision": 0.5774647887323944,
+            "recall": 0.4019607843137255,
+            "roc_auc": 0.7238275427129915,
+            "sensitivity": 0.4019607843137255,
+            "specificity": 0.8245614035087719,
+            "threshold": 0.5,
+            "tn": 141,
+            "tp": 41
+          },
+          "inner_metrics": {
+            "accuracy": 0.6923076923076923,
+            "average_precision": 0.5964226456045509,
+            "balanced_accuracy": 0.6673546611627107,
+            "brier_score": 0.20059393681454762,
+            "cohen_kappa": 0.3373786407766991,
+            "ece": 0.049031885712829286,
+            "f1": 0.58,
+            "fn": 44,
+            "fp": 40,
+            "log_loss": 0.586588456216664,
+            "mcc": 0.3375467162343192,
+            "pr_auc": 0.593097617168518,
+            "precision": 0.5918367346938775,
+            "recall": 0.5686274509803921,
+            "roc_auc": 0.7309941520467836,
+            "sensitivity": 0.5686274509803921,
+            "specificity": 0.7660818713450293,
+            "threshold": 0.45,
+            "tn": 131,
+            "tp": 58
+          },
+          "model": "LightGBM-d3",
+          "threshold": 0.45
+        },
+        {
+          "fold": 5,
+          "inner_baseline_metrics": {
+            "accuracy": 0.706959706959707,
+            "average_precision": 0.6537654495870872,
+            "balanced_accuracy": 0.6671330668189606,
+            "brier_score": 0.19284955709149698,
+            "cohen_kappa": 0.348953675549991,
+            "ece": 0.042872559831000114,
+            "f1": 0.5652173913043478,
+            "fn": 51,
+            "fp": 29,
+            "log_loss": 0.5684323455657739,
+            "mcc": 0.3546845958921693,
+            "pr_auc": 0.6506642849727589,
+            "precision": 0.6419753086419753,
+            "recall": 0.5048543689320388,
+            "roc_auc": 0.7517989720159908,
+            "sensitivity": 0.5048543689320388,
+            "specificity": 0.8294117647058824,
+            "threshold": 0.5,
+            "tn": 141,
+            "tp": 52
+          },
+          "inner_metrics": {
+            "accuracy": 0.7289377289377289,
+            "average_precision": 0.6718245158493765,
+            "balanced_accuracy": 0.68478012564249,
+            "brier_score": 0.18833391334168367,
+            "cohen_kappa": 0.3904779145546705,
+            "ece": 0.0506295003173185,
+            "f1": 0.5842696629213483,
+            "fn": 51,
+            "fp": 23,
+            "log_loss": 0.5607435411293024,
+            "mcc": 0.40129624866961244,
+            "pr_auc": 0.6690320119186575,
+            "precision": 0.6933333333333334,
+            "recall": 0.5048543689320388,
+            "roc_auc": 0.7653340948029699,
+            "sensitivity": 0.5048543689320388,
+            "specificity": 0.8647058823529412,
+            "threshold": 0.5,
+            "tn": 147,
+            "tp": 52
+          },
+          "model": "LightGBM-established",
+          "threshold": 0.5
+        },
+        {
+          "fold": 6,
+          "inner_baseline_metrics": {
+            "accuracy": 0.6336996336996337,
+            "average_precision": 0.5540296275346104,
+            "balanced_accuracy": 0.5891776127926899,
+            "brier_score": 0.20899193149336337,
+            "cohen_kappa": 0.18619209443748885,
+            "ece": 0.09097900373613892,
+            "f1": 0.45652173913043476,
+            "fn": 61,
+            "fp": 39,
+            "log_loss": 0.6003614801963297,
+            "mcc": 0.18924995608598064,
+            "pr_auc": 0.5464741152708621,
+            "precision": 0.5185185185185185,
+            "recall": 0.4077669902912621,
+            "roc_auc": 0.7131924614505997,
+            "sensitivity": 0.4077669902912621,
+            "specificity": 0.7705882352941177,
+            "threshold": 0.5,
+            "tn": 131,
+            "tp": 42
+          },
+          "inner_metrics": {
+            "accuracy": 0.6556776556776557,
+            "average_precision": 0.5500319689741574,
+            "balanced_accuracy": 0.6412621359223301,
+            "brier_score": 0.2128303791496316,
+            "cohen_kappa": 0.278265271684104,
+            "ece": 0.08034691192822957,
+            "f1": 0.5607476635514018,
+            "fn": 43,
+            "fp": 51,
+            "log_loss": 0.6105466387201611,
+            "mcc": 0.2787917003621729,
+            "pr_auc": 0.5455717695402414,
+            "precision": 0.5405405405405406,
+            "recall": 0.5825242718446602,
+            "roc_auc": 0.6989720159908623,
+            "sensitivity": 0.5825242718446602,
+            "specificity": 0.7,
+            "threshold": 0.4,
+            "tn": 119,
+            "tp": 60
+          },
+          "model": "LightGBM-established",
+          "threshold": 0.4
+        },
+        {
+          "fold": 7,
+          "inner_baseline_metrics": {
+            "accuracy": 0.6813186813186813,
+            "average_precision": 0.6147751803109891,
+            "balanced_accuracy": 0.646544831524843,
+            "brier_score": 0.19561960251192534,
+            "cohen_kappa": 0.3017492282816405,
+            "ece": 0.056959755682263524,
+            "f1": 0.5445026178010471,
+            "fn": 51,
+            "fp": 36,
+            "log_loss": 0.573006525491709,
+            "mcc": 0.3039599569890143,
+            "pr_auc": 0.6117330233647433,
+            "precision": 0.5909090909090909,
+            "recall": 0.5048543689320388,
+            "roc_auc": 0.7505996573386637,
+            "sensitivity": 0.5048543689320388,
+            "specificity": 0.788235294117647,
+            "threshold": 0.5,
+            "tn": 134,
+            "tp": 52
+          },
+          "inner_metrics": {
+            "accuracy": 0.7142857142857143,
+            "average_precision": 0.624356786763263,
+            "balanced_accuracy": 0.7112792689891491,
+            "brier_score": 0.19665516685095394,
+            "cohen_kappa": 0.4100077579519007,
+            "ece": 0.08094317890792971,
+            "f1": 0.6486486486486487,
+            "fn": 31,
+            "fp": 47,
+            "log_loss": 0.5784128585120327,
+            "mcc": 0.4130438053276919,
+            "pr_auc": 0.6211632104930986,
+            "precision": 0.6050420168067226,
+            "recall": 0.6990291262135923,
+            "roc_auc": 0.75653912050257,
+            "sensitivity": 0.6990291262135923,
+            "specificity": 0.7235294117647059,
+            "threshold": 0.4,
+            "tn": 123,
+            "tp": 72
+          },
+          "model": "LightGBM-d3",
+          "threshold": 0.4
+        },
+        {
+          "fold": 8,
+          "inner_baseline_metrics": {
+            "accuracy": 0.684981684981685,
+            "average_precision": 0.5434631936709482,
+            "balanced_accuracy": 0.6399200456881782,
+            "brier_score": 0.20824846753728013,
+            "cohen_kappa": 0.29448885149347914,
+            "ece": 0.04173473567538147,
+            "f1": 0.5222222222222223,
+            "fn": 56,
+            "fp": 30,
+            "log_loss": 0.602179841445181,
+            "mcc": 0.3014252353814973,
+            "pr_auc": 0.5355461631830015,
+            "precision": 0.6103896103896104,
+            "recall": 0.4563106796116505,
+            "roc_auc": 0.7093660765276983,
+            "sensitivity": 0.4563106796116505,
+            "specificity": 0.8235294117647058,
+            "threshold": 0.5,
+            "tn": 140,
+            "tp": 47
+          },
+          "inner_metrics": {
+            "accuracy": 0.684981684981685,
+            "average_precision": 0.5434631936709482,
+            "balanced_accuracy": 0.6399200456881782,
+            "brier_score": 0.20824846753728013,
+            "cohen_kappa": 0.29448885149347914,
+            "ece": 0.04173473567538147,
+            "f1": 0.5222222222222223,
+            "fn": 56,
+            "fp": 30,
+            "log_loss": 0.602179841445181,
+            "mcc": 0.3014252353814973,
+            "pr_auc": 0.5355461631830015,
+            "precision": 0.6103896103896104,
+            "recall": 0.4563106796116505,
+            "roc_auc": 0.7093660765276983,
+            "sensitivity": 0.4563106796116505,
+            "specificity": 0.8235294117647058,
+            "threshold": 0.5,
+            "tn": 140,
+            "tp": 47
+          },
+          "model": "Baseline",
+          "threshold": 0.5
+        },
+        {
+          "fold": 9,
+          "inner_baseline_metrics": {
+            "accuracy": 0.663003663003663,
+            "average_precision": 0.5863033816903488,
+            "balanced_accuracy": 0.606967447173044,
+            "brier_score": 0.20231893187724073,
+            "cohen_kappa": 0.2297595682041217,
+            "ece": 0.07154213424415044,
+            "f1": 0.4588235294117647,
+            "fn": 64,
+            "fp": 28,
+            "log_loss": 0.5867486165522144,
+            "mcc": 0.2409648459096064,
+            "pr_auc": 0.5789933306239987,
+            "precision": 0.582089552238806,
+            "recall": 0.3786407766990291,
+            "roc_auc": 0.7296973158195318,
+            "sensitivity": 0.3786407766990291,
+            "specificity": 0.8352941176470589,
+            "threshold": 0.5,
+            "tn": 142,
+            "tp": 39
+          },
+          "inner_metrics": {
+            "accuracy": 0.6776556776556777,
+            "average_precision": 0.5863033816903488,
+            "balanced_accuracy": 0.6359508852084523,
+            "brier_score": 0.20231893187724073,
+            "cohen_kappa": 0.28384904310499015,
+            "ece": 0.07154213424415044,
+            "f1": 0.5217391304347826,
+            "fn": 55,
+            "fp": 33,
+            "log_loss": 0.5867486165522144,
+            "mcc": 0.28851073996969384,
+            "pr_auc": 0.5789933306239987,
+            "precision": 0.5925925925925926,
+            "recall": 0.46601941747572817,
+            "roc_auc": 0.7296973158195318,
+            "sensitivity": 0.46601941747572817,
+            "specificity": 0.8058823529411765,
+            "threshold": 0.45,
+            "tn": 137,
+            "tp": 48
+          },
+          "model": "Baseline",
+          "threshold": 0.45
+        },
+        {
+          "fold": 10,
+          "inner_baseline_metrics": {
+            "accuracy": 0.6703296703296703,
+            "average_precision": 0.5938088785856334,
+            "balanced_accuracy": 0.6166761850371216,
+            "brier_score": 0.20187252581803697,
+            "cohen_kappa": 0.24958768554150623,
+            "ece": 0.05935705673082319,
+            "f1": 0.47674418604651164,
+            "fn": 62,
+            "fp": 28,
+            "log_loss": 0.5870993825574006,
+            "mcc": 0.2602649348757901,
+            "pr_auc": 0.5890789723271415,
+            "precision": 0.5942028985507246,
+            "recall": 0.39805825242718446,
+            "roc_auc": 0.7263278126784695,
+            "sensitivity": 0.39805825242718446,
+            "specificity": 0.8352941176470589,
+            "threshold": 0.5,
+            "tn": 142,
+            "tp": 41
+          },
+          "inner_metrics": {
+            "accuracy": 0.684981684981685,
+            "average_precision": 0.6301714996690952,
+            "balanced_accuracy": 0.6513992004568818,
+            "brier_score": 0.19934174675833846,
+            "cohen_kappa": 0.311131975823015,
+            "ece": 0.07395375294250281,
+            "f1": 0.5520833333333334,
+            "fn": 50,
+            "fp": 36,
+            "log_loss": 0.5832336648545242,
+            "mcc": 0.3131069700556174,
+            "pr_auc": 0.6276647393206417,
+            "precision": 0.5955056179775281,
+            "recall": 0.5145631067961165,
+            "roc_auc": 0.7366076527698457,
+            "sensitivity": 0.5145631067961165,
+            "specificity": 0.788235294117647,
+            "threshold": 0.45,
+            "tn": 134,
+            "tp": 53
+          },
+          "model": "LightGBM-d3",
+          "threshold": 0.45
+        }
+      ],
+      "model_name": "Sigmoid-calibrated LightGBM-d3",
+      "outer_selected_models": {
+        "Baseline": 3,
+        "LightGBM-d3": 5,
+        "LightGBM-established": 2
+      },
+      "promoted": true,
+      "release_procedure_metrics": {
+        "accuracy": 0.6831683168316832,
+        "average_precision": 0.6020362112757327,
+        "balanced_accuracy": 0.6572681704260652,
+        "brier_score": 0.19721581057181725,
+        "cohen_kappa": 0.3178556352891515,
+        "ece": 0.05372083648789154,
+        "f1": 0.5675675675675675,
+        "fn": 51,
+        "fp": 45,
+        "log_loss": 0.5777662952572067,
+        "mcc": 0.318144906417405,
+        "pr_auc": 0.5985972568048323,
+        "precision": 0.5833333333333334,
+        "recall": 0.5526315789473685,
+        "roc_auc": 0.7438039543302702,
+        "sensitivity": 0.5526315789473685,
+        "specificity": 0.7619047619047619,
+        "threshold": 0.5,
+        "tn": 144,
+        "tp": 63
+      }
+    }
+  },
+  "tuned_targets": [
+    "RCA"
+  ]
+}

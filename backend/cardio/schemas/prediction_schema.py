@@ -13,6 +13,8 @@ class VesselRiskInfo(BaseModel):
     risk_level: str = Field(..., description="'Low Risk', 'Intermediate Risk', or 'High Stenosis Risk'")
     color_hex: str = Field(..., description="Hex color for 3D visualization: Green, Amber, or Red")
     anatomical_description: str = Field(..., description="Clinical description of vascular territory")
+    predicted_status: Optional[Literal['CAD', 'Stenotic', 'Normal']] = Field(None, description="Binary model classification, separate from probability display bands")
+    decision_threshold: float = Field(.5, ge=0, le=1, description="Research classification threshold selected on training-only folds")
 
 
 class SourceMeasurement(BaseModel):
@@ -47,6 +49,28 @@ class PredictionEvidence(BaseModel):
     model_artifact_sha256: Optional[str] = None
     validation_summary: Dict[str, Any] = Field(default_factory=dict)
     report_available: bool = False
+    input_provenance: Dict[str, Any] = Field(default_factory=dict)
+
+
+class DomainContribution(BaseModel):
+    id: str
+    label: str
+    contribution: float = Field(..., description='Additive probability contribution; multiply by 100 for percentage points')
+    source_measurements: List[SourceMeasurement]
+
+
+class DeployedPredictionExplanation(BaseModel):
+    method: str
+    output_space: Literal['probability']
+    reference_type: Literal['synthetic_default_profile']
+    reference_inputs: Dict[str, Any]
+    baseline_probability: float
+    predicted_probability: float
+    reconstruction_error: float
+    evaluated_coalitions: int
+    unique_model_vectors: int
+    groups: List[DomainContribution]
+    limitations: str
 
 
 class PredictionResponse(BaseModel):
@@ -59,6 +83,7 @@ class PredictionResponse(BaseModel):
     )
     disclaimer: str = Field(..., description="Clinical safety statement")
     evidence: PredictionEvidence
+    prediction_explanations: Dict[str, DeployedPredictionExplanation] = Field(default_factory=dict)
 
 
 class ModelMetrics(BaseModel):

@@ -1,0 +1,526 @@
+{
+  "measured_at": "2026-10-10T05:26:43.163738+00:00",
+  "method": "Synthetic profiles; exact seven-domain allocation of loaded calibrated predict_proba. Timings cover all targets and all coalition evaluations; include first invocation, exclude model loading and direct fidelity checks.",
+  "timing": {
+    "calls": 15,
+    "repeats_per_profile": 5,
+    "p50_seconds": 0.1252454170025885,
+    "p95_seconds": 0.13717120820219858,
+    "max_seconds": 0.1585340419987915
+  },
+  "alternate_reference_inputs": {
+    "Age": 45,
+    "Sex": 1,
+    "Weight": 72.0,
+    "Length": 170.0,
+    "BMI": 24.913494809688583,
+    "DM": 0,
+    "HTN": 0,
+    "Current Smoker": 0,
+    "EX-Smoker": 0,
+    "FH": 0,
+    "Obesity": 0,
+    "CRF": 0,
+    "CVA": 0,
+    "Airway disease": 0,
+    "Thyroid Disease": 0,
+    "CHF": 0,
+    "DLP": 0,
+    "BP": 110,
+    "PR": 75,
+    "Edema": 0,
+    "Weak Peripheral Pulse": 0,
+    "Lung rales": 0,
+    "Systolic Murmur": 0,
+    "Diastolic Murmur": 0,
+    "Typical Chest Pain": 0,
+    "Dyspnea": 0,
+    "Function Class": 0,
+    "Atypical": 0,
+    "Nonanginal": 0,
+    "Exertional CP": 0,
+    "LowTH Ang": 0,
+    "Q Wave": 0,
+    "St Elevation": 0,
+    "St Depression": 0,
+    "Tinversion": 0,
+    "LVH": 0,
+    "Poor R Progression": 0,
+    "BBB": 0,
+    "FBS": 90.0,
+    "CR": 0.9,
+    "TG": 130.0,
+    "LDL": 100.0,
+    "HDL": 45.0,
+    "BUN": 15.0,
+    "ESR": 12.0,
+    "HB": 14.0,
+    "K": 4.2,
+    "Na": 140.0,
+    "WBC": 6500.0,
+    "Lymph": 30.0,
+    "Neut": 60.0,
+    "PLT": 220.0,
+    "EF-TTE": 55.0,
+    "Region RWMA": 0,
+    "VHD": 0
+  },
+  "cases": [
+    {
+      "name": "schema_defaults",
+      "synthetic_inputs": {
+        "Age": 55,
+        "Sex": 1,
+        "Weight": 72.0,
+        "Length": 170.0,
+        "BMI": 24.913494809688583,
+        "DM": 0,
+        "HTN": 0,
+        "Current Smoker": 0,
+        "EX-Smoker": 0,
+        "FH": 0,
+        "Obesity": 0,
+        "CRF": 0,
+        "CVA": 0,
+        "Airway disease": 0,
+        "Thyroid Disease": 0,
+        "CHF": 0,
+        "DLP": 0,
+        "BP": 120,
+        "PR": 75,
+        "Edema": 0,
+        "Weak Peripheral Pulse": 0,
+        "Lung rales": 0,
+        "Systolic Murmur": 0,
+        "Diastolic Murmur": 0,
+        "Typical Chest Pain": 0,
+        "Dyspnea": 0,
+        "Function Class": 0,
+        "Atypical": 0,
+        "Nonanginal": 0,
+        "Exertional CP": 0,
+        "LowTH Ang": 0,
+        "Q Wave": 0,
+        "St Elevation": 0,
+        "St Depression": 0,
+        "Tinversion": 0,
+        "LVH": 0,
+        "Poor R Progression": 0,
+        "BBB": 0,
+        "FBS": 90.0,
+        "CR": 0.9,
+        "TG": 130.0,
+        "LDL": 100.0,
+        "HDL": 45.0,
+        "BUN": 15.0,
+        "ESR": 12.0,
+        "HB": 14.0,
+        "K": 4.2,
+        "Na": 140.0,
+        "WBC": 6500.0,
+        "Lymph": 30.0,
+        "Neut": 60.0,
+        "PLT": 220.0,
+        "EF-TTE": 55.0,
+        "Region RWMA": 0,
+        "VHD": 0
+      },
+      "targets": {
+        "CAD": {
+          "prediction_error": 0.0,
+          "reconstruction_error": 0.0,
+          "repeat_max_contribution_difference": 0.0,
+          "predicted_probability": 0.06094986848277906,
+          "unique_model_vectors": 1,
+          "alternate_reference": {
+            "probability_difference": 0.0,
+            "baseline_difference": -0.010678363180598838,
+            "allocation_l1_difference": 0.010678363180598836,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          },
+          "age_plus_one": {
+            "probability_difference": 0.001635970256503666,
+            "baseline_difference": 0.0,
+            "allocation_l1_difference": 0.0016359702565036658,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          }
+        },
+        "LAD": {
+          "prediction_error": 0.0,
+          "reconstruction_error": 0.0,
+          "repeat_max_contribution_difference": 0.0,
+          "predicted_probability": 0.08413568757872633,
+          "unique_model_vectors": 1,
+          "alternate_reference": {
+            "probability_difference": 0.0,
+            "baseline_difference": -0.011412944448009416,
+            "allocation_l1_difference": 0.011412944448009422,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          },
+          "age_plus_one": {
+            "probability_difference": 0.001009153600879123,
+            "baseline_difference": 0.0,
+            "allocation_l1_difference": 0.0010091536008791236,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          }
+        },
+        "LCX": {
+          "prediction_error": 0.0,
+          "reconstruction_error": 0.0,
+          "repeat_max_contribution_difference": 0.0,
+          "predicted_probability": 0.131921930504292,
+          "unique_model_vectors": 1,
+          "alternate_reference": {
+            "probability_difference": 0.0,
+            "baseline_difference": -0.017710181441444844,
+            "allocation_l1_difference": 0.01771018144144483,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          },
+          "age_plus_one": {
+            "probability_difference": 0.0030132976141261925,
+            "baseline_difference": 0.0,
+            "allocation_l1_difference": 0.003013297614126192,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          }
+        },
+        "RCA": {
+          "prediction_error": 0.0,
+          "reconstruction_error": 0.0,
+          "repeat_max_contribution_difference": 0.0,
+          "predicted_probability": 0.16461826565891577,
+          "unique_model_vectors": 1,
+          "alternate_reference": {
+            "probability_difference": 0.0,
+            "baseline_difference": -0.00286285649595161,
+            "allocation_l1_difference": 0.0036890465804280694,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          },
+          "age_plus_one": {
+            "probability_difference": 0.002730466393951969,
+            "baseline_difference": 0.0,
+            "allocation_l1_difference": 0.0027304663939519674,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          }
+        }
+      }
+    },
+    {
+      "name": "synthetic_older_higher_pressure",
+      "synthetic_inputs": {
+        "Age": 67,
+        "Sex": 1,
+        "Weight": 72.0,
+        "Length": 170.0,
+        "BMI": 24.913494809688583,
+        "DM": 0,
+        "HTN": 0,
+        "Current Smoker": 0,
+        "EX-Smoker": 0,
+        "FH": 0,
+        "Obesity": 0,
+        "CRF": 0,
+        "CVA": 0,
+        "Airway disease": 0,
+        "Thyroid Disease": 0,
+        "CHF": 0,
+        "DLP": 0,
+        "BP": 140,
+        "PR": 75,
+        "Edema": 0,
+        "Weak Peripheral Pulse": 0,
+        "Lung rales": 0,
+        "Systolic Murmur": 0,
+        "Diastolic Murmur": 0,
+        "Typical Chest Pain": 0,
+        "Dyspnea": 0,
+        "Function Class": 0,
+        "Atypical": 0,
+        "Nonanginal": 0,
+        "Exertional CP": 0,
+        "LowTH Ang": 0,
+        "Q Wave": 0,
+        "St Elevation": 0,
+        "St Depression": 0,
+        "Tinversion": 0,
+        "LVH": 0,
+        "Poor R Progression": 0,
+        "BBB": 0,
+        "FBS": 90.0,
+        "CR": 0.9,
+        "TG": 130.0,
+        "LDL": 100.0,
+        "HDL": 45.0,
+        "BUN": 15.0,
+        "ESR": 12.0,
+        "HB": 14.0,
+        "K": 4.2,
+        "Na": 140.0,
+        "WBC": 6500.0,
+        "Lymph": 30.0,
+        "Neut": 60.0,
+        "PLT": 220.0,
+        "EF-TTE": 55.0,
+        "Region RWMA": 0,
+        "VHD": 0
+      },
+      "targets": {
+        "CAD": {
+          "prediction_error": 0.0,
+          "reconstruction_error": 2.7755575615628914e-17,
+          "repeat_max_contribution_difference": 0.0,
+          "predicted_probability": 0.10869322881031425,
+          "unique_model_vectors": 4,
+          "alternate_reference": {
+            "probability_difference": 0.0,
+            "baseline_difference": -0.010678363180598838,
+            "allocation_l1_difference": 0.010678363180598819,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          },
+          "age_plus_one": {
+            "probability_difference": 0.015105566424779046,
+            "baseline_difference": 0.0,
+            "allocation_l1_difference": 0.015105566424779032,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          }
+        },
+        "LAD": {
+          "prediction_error": 0.0,
+          "reconstruction_error": 0.0,
+          "repeat_max_contribution_difference": 0.0,
+          "predicted_probability": 0.11082322183888224,
+          "unique_model_vectors": 4,
+          "alternate_reference": {
+            "probability_difference": 0.0,
+            "baseline_difference": -0.011412944448009416,
+            "allocation_l1_difference": 0.011412944448009419,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          },
+          "age_plus_one": {
+            "probability_difference": 0.007058979217408598,
+            "baseline_difference": 0.0,
+            "allocation_l1_difference": 0.007058979217408608,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          }
+        },
+        "LCX": {
+          "prediction_error": 0.0,
+          "reconstruction_error": 2.7755575615628914e-17,
+          "repeat_max_contribution_difference": 0.0,
+          "predicted_probability": 0.18267246043541327,
+          "unique_model_vectors": 4,
+          "alternate_reference": {
+            "probability_difference": 0.0,
+            "baseline_difference": -0.017710181441444844,
+            "allocation_l1_difference": 0.017710181441444806,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          },
+          "age_plus_one": {
+            "probability_difference": 0.02347064568601212,
+            "baseline_difference": 0.0,
+            "allocation_l1_difference": 0.023470645686012082,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          }
+        },
+        "RCA": {
+          "prediction_error": 0.0,
+          "reconstruction_error": 0.0,
+          "repeat_max_contribution_difference": 0.0,
+          "predicted_probability": 0.19191153455078255,
+          "unique_model_vectors": 4,
+          "alternate_reference": {
+            "probability_difference": 0.0,
+            "baseline_difference": -0.00286285649595161,
+            "allocation_l1_difference": 0.0028628564959516265,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          },
+          "age_plus_one": {
+            "probability_difference": 0.0,
+            "baseline_difference": 0.0,
+            "allocation_l1_difference": 0.0,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          }
+        }
+      }
+    },
+    {
+      "name": "synthetic_ecg_history",
+      "synthetic_inputs": {
+        "Age": 60,
+        "Sex": 1,
+        "Weight": 72.0,
+        "Length": 170.0,
+        "BMI": 24.913494809688583,
+        "DM": 1,
+        "HTN": 0,
+        "Current Smoker": 0,
+        "EX-Smoker": 0,
+        "FH": 0,
+        "Obesity": 0,
+        "CRF": 0,
+        "CVA": 0,
+        "Airway disease": 0,
+        "Thyroid Disease": 0,
+        "CHF": 0,
+        "DLP": 0,
+        "BP": 120,
+        "PR": 75,
+        "Edema": 0,
+        "Weak Peripheral Pulse": 0,
+        "Lung rales": 0,
+        "Systolic Murmur": 0,
+        "Diastolic Murmur": 0,
+        "Typical Chest Pain": 0,
+        "Dyspnea": 0,
+        "Function Class": 0,
+        "Atypical": 0,
+        "Nonanginal": 0,
+        "Exertional CP": 0,
+        "LowTH Ang": 0,
+        "Q Wave": 0,
+        "St Elevation": 0,
+        "St Depression": 1,
+        "Tinversion": 0,
+        "LVH": 0,
+        "Poor R Progression": 0,
+        "BBB": 0,
+        "FBS": 90.0,
+        "CR": 0.9,
+        "TG": 130.0,
+        "LDL": 100.0,
+        "HDL": 45.0,
+        "BUN": 15.0,
+        "ESR": 12.0,
+        "HB": 14.0,
+        "K": 4.2,
+        "Na": 140.0,
+        "WBC": 6500.0,
+        "Lymph": 30.0,
+        "Neut": 60.0,
+        "PLT": 220.0,
+        "EF-TTE": 55.0,
+        "Region RWMA": 0,
+        "VHD": 0
+      },
+      "targets": {
+        "CAD": {
+          "prediction_error": 0.0,
+          "reconstruction_error": 0.0,
+          "repeat_max_contribution_difference": 0.0,
+          "predicted_probability": 0.5262496671469754,
+          "unique_model_vectors": 8,
+          "alternate_reference": {
+            "probability_difference": 0.0,
+            "baseline_difference": -0.010678363180598838,
+            "allocation_l1_difference": 0.06968710300486711,
+            "largest_domain_before": "history",
+            "largest_domain_after": "profile"
+          },
+          "age_plus_one": {
+            "probability_difference": 0.004401073327858107,
+            "baseline_difference": 0.0,
+            "allocation_l1_difference": 0.004401073327858135,
+            "largest_domain_before": "history",
+            "largest_domain_after": "profile"
+          }
+        },
+        "LAD": {
+          "prediction_error": 0.0,
+          "reconstruction_error": 0.0,
+          "repeat_max_contribution_difference": 0.0,
+          "predicted_probability": 0.3356581615155513,
+          "unique_model_vectors": 8,
+          "alternate_reference": {
+            "probability_difference": 0.0,
+            "baseline_difference": -0.011412944448009416,
+            "allocation_l1_difference": 0.03176981089538146,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          },
+          "age_plus_one": {
+            "probability_difference": 0.005105089846058564,
+            "baseline_difference": 0.0,
+            "allocation_l1_difference": 0.0051050898460585775,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          }
+        },
+        "LCX": {
+          "prediction_error": 0.0,
+          "reconstruction_error": 0.0,
+          "repeat_max_contribution_difference": 0.0,
+          "predicted_probability": 0.18745067969050672,
+          "unique_model_vectors": 8,
+          "alternate_reference": {
+            "probability_difference": 0.0,
+            "baseline_difference": -0.017710181441444844,
+            "allocation_l1_difference": 0.02589830089265244,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          },
+          "age_plus_one": {
+            "probability_difference": 0.0022190968530441113,
+            "baseline_difference": 0.0,
+            "allocation_l1_difference": 0.002219096853044114,
+            "largest_domain_before": "profile",
+            "largest_domain_after": "profile"
+          }
+        },
+        "RCA": {
+          "prediction_error": 0.0,
+          "reconstruction_error": 0.0,
+          "repeat_max_contribution_difference": 0.0,
+          "predicted_probability": 0.2918202641684634,
+          "unique_model_vectors": 8,
+          "alternate_reference": {
+            "probability_difference": 0.0,
+            "baseline_difference": -0.00286285649595161,
+            "allocation_l1_difference": 0.014233770084755529,
+            "largest_domain_before": "history",
+            "largest_domain_after": "profile"
+          },
+          "age_plus_one": {
+            "probability_difference": 0.0004225920032756014,
+            "baseline_difference": 0.0,
+            "allocation_l1_difference": 0.00043307342603192417,
+            "largest_domain_before": "history",
+            "largest_domain_after": "history"
+          }
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Synthetic local smoke benchmark, not hardware/load SLO or patient-level confidence interval.",
+    "One named alternate synthetic reference and one-year age perturbation are descriptive sensitivity checks, not a comprehensive stability study.",
+    "Reference choice and domain grouping affect allocation; mixed profiles may be implausible; no causal or treatment interpretation."
+  ],
+  "model_load_seconds": 0.9800777920027031,
+  "bundle_sha256": "0138162c96a87500b8d8abf0132f831b938b89b5f62e4277f022d0482a3de544",
+  "release_id": "20261010T044519Z-77a76019",
+  "runtime": {
+    "python": "3.11.14",
+    "platform": "macOS-26.6.2-arm64-arm-64bit"
+  },
+  "source_hashes": {
+    "scripts/benchmark_explanations.py": "163943e55051e83bb789183e7c68027097a9a4879ab659cc30c5e4f181094fa8",
+    "backend/cardio/service/deployed_explanation.py": "372041453e6e1fb523509c277c632c18bd13e95283545bf18ee47ad15711c06c",
+    "backend/cardio/service/feature_service.py": "833d51159ff785fab539803f3a2d31c4197eacb0e59654af56a52707c8366c44",
+    "backend/cardio/schemas/patient_schema.py": "10131c767bdb2ca84b5acfa4c5d2548b0725c61bcbc7054c32a06b7d15d42d1c"
+  }
+}

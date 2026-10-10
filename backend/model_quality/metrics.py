@@ -77,9 +77,9 @@ def binary_metrics(y, probability, threshold=.5, y_pred=None):
             'ece': sum(row['count'] / len(y) * abs(row['mean_probability'] - row['fraction_positive']) for row in bins if row['count'])}
 
 
-def diagnostics(y, probability):
+def diagnostics(y, probability, threshold=.5):
     y, p = validated_arrays(y, probability)
-    metrics = binary_metrics(y, p)
+    metrics = binary_metrics(y, p, threshold)
     if len(np.unique(y)) == 2:
         fpr, tpr, thresholds = roc_curve(y, p, drop_intermediate=False)
         roc = {'fpr': fpr.tolist(), 'tpr': tpr.tolist(), 'thresholds': [float(t) if np.isfinite(t) else None for t in thresholds]}

@@ -6,6 +6,9 @@ Ensemble Soft-Voting, Calibrated Probability Estimation, and SHAP Explainability
 """
 
 import os
+
+if __name__ == "__main__" and "--legacy-retrain" not in __import__("sys").argv:
+    raise SystemExit("Retired legacy training entry point. Use scripts/improve_models.py for versioned, leakage-safe release training, or scripts/evaluate_model_quality.py --production-only for evaluation. Explicit --legacy-retrain acknowledges destructive historical artifact overwrite and unsuitable legacy evaluation.")
 import sys
 import json
 import logging

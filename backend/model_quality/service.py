@@ -1,6 +1,7 @@
 """Read-only, bounded snapshot cache. No models are loaded or predictions run."""
 import copy
 import hashlib
+from importlib.metadata import PackageNotFoundError, version as library_version
 import json
 from pathlib import Path
 from threading import RLock
@@ -91,6 +92,12 @@ class QualityService:
             except OSError:
                 return False
         provenance = summary['provenance']
+        for package, expected in provenance.get('library_versions', {}).items():
+            try:
+                if library_version(package) != expected:
+                    return True
+            except PackageNotFoundError:
+                return True
         expected_files = {self.model_path: provenance['model_sha256']}
         if self.dataset_path:
             expected_files[self.dataset_path] = provenance['dataset_sha256']

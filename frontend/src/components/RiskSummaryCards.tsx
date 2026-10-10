@@ -44,7 +44,7 @@ export function RiskSummaryCards({
               }}
             />
           </div>
-          <small>{stale ? "Previous result · reassessment required" : data ? "Model probability" : "No result yet"}</small>
+          <small>{stale ? "Previous result · reassessment required" : data?.predicted_status ? `Model probability · Predicted status: ${data.predicted_status}` : data ? "Model probability" : "No result yet"}</small>
           {key !== "CAD" && onSelectVessel && <button className="text-button" aria-pressed={selectedVessel === key.toLowerCase()} onClick={() => onSelectVessel(key.toLowerCase() as Vessel)}>Inspect {key} evidence →</button>}
         </article>
       ))}

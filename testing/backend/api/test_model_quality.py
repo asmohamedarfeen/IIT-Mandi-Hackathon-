@@ -38,8 +38,9 @@ def evidence(tmp_path):
     model_path.write_bytes(b'production-model-fixture')
     diag = diagnostics(y, probabilities)
     target = {'class_distribution': distribution(y), 'folds': folds, 'models': {'CalibratedVoting': {'metrics': {k: binary_metrics(y, probabilities)[k] for k in METRIC_KEYS}, 'undefined_metrics': diag['undefined_metrics'], 'fold_metrics': fold_metrics, 'diagnostics': diag}}, 'feature_stability': {'model': 'XGBoost', 'method': 'test fitted folds', 'features': [], 'mean_rank_correlation': None, 'mean_top_k_jaccard': None}, 'shap_stability': {'model': 'XGBoost', 'method': 'test fitted folds', 'features': [], 'mean_rank_correlation': None, 'mean_top_k_jaccard': None}}
-    summary = {'schema_version': 1, 'run_id': run_id, 'generated_at': '2026-10-09T00:00:00Z', 'selected_model': 'CalibratedVoting', 'provenance': {'dataset_sha256': digest(x.tobytes()), 'model_sha256': digest(model_path.read_bytes()), 'feature_sha256': digest(b'four features'), 'git_commit': 'test', 'git_dirty': False, 'source_hashes': {}, 'python_version': '3.11', 'library_versions': {}, 'random_seed': 7, 'outer_folds': 3, 'inner_folds': 2, 'command': 'pytest real logistic OOF fixture', 'preprocessing': {}, 'model_parameters': {}}, 'data_quality': {'rows': len(y), 'missing_values': {}, 'duplicates': 0, 'leakage_checks': []}, 'models': [{'id': 'CalibratedVoting', 'name': 'Test fitted comparator', 'production_configuration': False, 'configuration_source': 'test only', 'parameters': {}}], 'targets': {name: copy.deepcopy(target) for name in ('CAD', 'LAD', 'LCX', 'RCA')}, 'limitations': ['Tiny fitted test cohort only.'], 'supplied_benchmarks': {'targets': {}}}
-    oof = {'schema_version': 1, 'run_id': run_id, 'targets': {name: {'labels': y.tolist(), 'fold_ids': fold_ids.tolist(), 'probabilities': {'CalibratedVoting': probabilities.tolist()}} for name in summary['targets']}}
+    target['models']['Voting'] = copy.deepcopy(target['models']['CalibratedVoting'])
+    summary = {'schema_version': 1, 'run_id': run_id, 'generated_at': '2026-10-09T00:00:00Z', 'selected_model': 'CalibratedVoting', 'provenance': {'dataset_sha256': digest(x.tobytes()), 'model_sha256': digest(model_path.read_bytes()), 'feature_sha256': digest(b'four features'), 'git_commit': 'test', 'git_dirty': False, 'source_hashes': {}, 'python_version': '3.11', 'library_versions': {}, 'random_seed': 7, 'outer_folds': 3, 'inner_folds': 2, 'command': 'pytest real logistic OOF fixture', 'preprocessing': {}, 'model_parameters': {}}, 'data_quality': {'rows': len(y), 'missing_values': {}, 'duplicates': 0, 'leakage_checks': []}, 'models': [{'id': 'CalibratedVoting', 'name': 'Test fitted comparator', 'production_configuration': False, 'configuration_source': 'test only', 'parameters': {}}, {'id':'Voting','name':'Second real fitted test comparator','production_configuration':False,'configuration_source':'test only','parameters':{}}], 'targets': {name: copy.deepcopy(target) for name in ('CAD', 'LAD', 'LCX', 'RCA')}, 'limitations': ['Tiny fitted test cohort only.'], 'supplied_benchmarks': {'targets': {}}}
+    oof = {'schema_version': 1, 'run_id': run_id, 'targets': {name: {'labels': y.tolist(), 'fold_ids': fold_ids.tolist(), 'probabilities': {'CalibratedVoting': probabilities.tolist(),'Voting': probabilities.tolist()}} for name in summary['targets']}}
     folder = tmp_path / 'runs' / run_id
     folder.mkdir(parents=True)
     def publish():
@@ -81,6 +82,24 @@ def test_staleness_and_cache_invalidation(evidence):
     assert client.get('/api/v1/model-quality/overview').json()['limitations'][-1] == 'Republished artifact'
 
 
+def test_rounding_drift_in_fold_ece_is_valid_but_dependency_change_is_stale(evidence):
+    client, _, summary, _, _, _, publish = evidence
+    summary['provenance']['library_versions'] = {'numpy': __import__('importlib.metadata', fromlist=['version']).version('numpy')}
+    model = summary['targets']['CAD']['models']['CalibratedVoting']
+    ece = model['fold_metrics'][0]['ece']
+    assert ece is not None
+    model['fold_metrics'][0]['ece'] = ece + 5e-17
+    publish()
+    accepted = client.get('/api/v1/model-quality/overview')
+    assert accepted.status_code == 200
+    assert accepted.json()['stale'] is False
+    summary['provenance']['library_versions']['numpy'] = '0.0-different'
+    publish()
+    changed = client.get('/api/v1/model-quality/overview')
+    assert changed.status_code == 200
+    assert changed.json()['stale'] is True
+
+
 @pytest.mark.parametrize('params', [{'threshold': -1}, {'threshold': 'nan'}, {'threshold': 'inf'}, {'target': 'bad'}, {'model': 'missing'}])
 def test_query_validation(evidence, params):
     assert evidence[0].get('/api/v1/model-quality/confusion-matrix', params=params).status_code == 422
@@ -103,6 +122,12 @@ def test_exports_filter_aggregate_evidence(evidence):
     assert set(response.json()['targets']) == {'LAD'}
     assert response.json()['selection']['threshold'] == .4321
     assert 'labels' not in response.text and 'probabilities' not in response.text
+    overlays = client.get('/api/v1/model-quality/report', params={'format':'json','section':'roc','target':'CAD','models':'Voting,CalibratedVoting'})
+    assert overlays.status_code == 200, overlays.text
+    assert {model['id'] for model in overlays.json()['models']} == {'Voting','CalibratedVoting'}
+    assert set(overlays.json()['targets']['CAD']['models']) == {'Voting','CalibratedVoting'}
+    assert overlays.json()['selection']['models'] == ['CalibratedVoting','Voting']
+    assert client.get('/api/v1/model-quality/report', params={'section':'roc','models':'Voting,unknown'}).status_code == 422
     for section in ('metrics', 'calibration', 'roc', 'pr', 'shap', 'feature-stability', 'results'):
         for fmt in ('json', 'csv'):
             response = client.get('/api/v1/model-quality/report', params={'format': fmt, 'section': section})

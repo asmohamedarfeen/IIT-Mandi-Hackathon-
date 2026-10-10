@@ -2,6 +2,7 @@ import { useEffect, useId, useState } from "react";
 import { PredictionResponse } from "../utils/types";
 import { factorDirection, factorValue, rankedFactors } from "../utils/explanation";
 import { PredictionFactorDetail } from "./PredictionFactorDetail";
+import { formatMeasurement } from "../utils/evidence";
 export function SHAPExplanationChart({
   prediction,
   stale,
@@ -19,11 +20,26 @@ export function SHAPExplanationChart({
   const [expanded, setExpanded] = useState<{ prediction: PredictionResponse; target: string; feature: string } | null>(null);
   useEffect(() => { setExpanded(null); }, [prediction, prediction?.evidence?.assessment_id, target, stale]);
   const items = stale ? [] : rankedFactors(prediction?.shap_explanations[target]);
+  const deployed = stale ? undefined : prediction?.prediction_explanations?.[target];
   const max = Math.max(...items.map((i) => Math.abs(i.contribution)), 0.01);
   return (
     <section className="explanation" aria-labelledby={titleId}>
+      {!stale && prediction && <div className="deployed-explanation">
+        <h3>Deployed predictor explanation</h3>
+        {deployed ? <>
+          <p>{target} · {deployed.method} · reference: {deployed.reference_type === "synthetic_default_profile" ? "Synthetic default profile" : deployed.reference_type}</p>
+          <details><summary>Inspect reference measurements</summary>
+            {deployed.reference_inputs ? <dl>{Object.entries(deployed.reference_inputs).map(([key, value]) => <div key={key}><dt>{key}</dt><dd>{formatMeasurement(key, value)}</dd></div>)}</dl> : <p>Reference measurements unavailable in this saved assessment.</p>}
+          </details>
+          <p>Baseline probability: {(deployed.baseline_probability * 100).toFixed(2)}% · Assessed probability: {(deployed.predicted_probability * 100).toFixed(2)}%</p>
+          <p>Reconstructed probability: {((deployed.baseline_probability + deployed.groups.reduce((sum, group) => sum + group.contribution, 0)) * 100).toFixed(2)}% · Reconstruction error: {deployed.reconstruction_error.toExponential(2)} probability units</p>
+          <dl>{deployed.groups.map(group => <div key={group.id}><dt>{group.label}</dt><dd>{group.contribution >= 0 ? "+" : ""}{(group.contribution * 100).toFixed(2)} probability points</dd></div>)}</dl>
+          <p>Domain contributions add to the synthetic reference baseline. The reference is not a healthy-patient control; contributions are not causal effects or treatment advice.</p>
+          <p>{deployed.limitations}</p>
+        </> : <p>Deployed explanation unavailable in this saved assessment. Historical factors below do not reconstruct the assessment score.</p>}
+      </div>}
       <div className="explanation-intro">
-        <h2 id={titleId}>What drives this prediction?</h2>
+        <h2 id={titleId}>Historical independent XGBoost factors</h2>
         <p className="factor-context">{target} contributing factors · {prediction?.patient_id || "Awaiting assessment"}</p>
         <p>
           SHAP contributions from a separate explanation model, not exact

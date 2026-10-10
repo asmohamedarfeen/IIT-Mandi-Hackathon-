@@ -17,12 +17,13 @@ def main():
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--outer-folds', type=int, default=10)
     parser.add_argument('--inner-folds', type=int, default=5)
+    parser.add_argument('--production-only', action='store_true', help='Evaluate exact deployed per-target recipe plus its uncalibrated counterpart; omit registry comparators')
     parser.add_argument('--verify', action='store_true', help='Recompute every stored diagnostic from private OOF records; no model fitting')
     args = parser.parse_args()
     if args.verify:
         verify_run(args.output)
     else:
-        run = evaluate_dataset(args.dataset, args.bundle, args.output, args.seed, args.outer_folds, args.inner_folds)
+        run = evaluate_dataset(args.dataset, args.bundle, args.output, args.seed, args.outer_folds, args.inner_folds, args.production_only)
         print(f'Published completed evaluation: {run}', flush=True)
         verify_run(args.output)
 

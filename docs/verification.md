@@ -1,5 +1,7 @@
 # CardioVision redesign verification
 
+> Historical snapshot: this document describes the 8 October 2026 checkout and original model. Current release and explanation contracts are in [MODEL_CARD.md](MODEL_CARD.md); historical hashes, measurements and claims below are preserved for traceability.
+
 Verified 8 October 2026 on macOS, Python 3.11.14, Node 24.7.0, npm 11.5.1.
 The tested checkout is `codex/cardiovision-redesign`. Services used
 `127.0.0.1:8001` and `127.0.0.1:5174`; database

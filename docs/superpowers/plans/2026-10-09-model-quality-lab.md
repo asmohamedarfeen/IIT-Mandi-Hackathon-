@@ -40,21 +40,21 @@ Files: `feature_service.py`, new `backend/model_quality/models.py`, shared
 Interfaces: `extract_targets(df)`, `prepare_features(df, feature_names)`,
 `ClinicalPreprocessor(feature_names)`, `get_candidate_models(seed)`,
 `binary_metrics(y, probability, threshold)`, `diagnostics(y, probability)`.
-- [ ] Write and observe failing tests for strict labels, saved feature alignment,
+- [x] Write and observe failing tests for strict labels, saved feature alignment,
   fold-only medians and metric/curve/empty-bin boundaries.
-- [ ] Refactor shared implementations; preserve production inference regression scores.
-- [ ] Run shared tests and full backend suite.
+- [x] Refactor shared implementations; preserve production inference regression scores.
+- [x] Run shared tests and full backend suite.
 
 ### 2. Offline evaluator and publication
 
 Files: `backend/model_quality/evaluation.py`, `scripts/evaluate_model_quality.py`.
 Interface: versioned aggregate JSON with provenance, targets, models, folds,
 diagnostics and stability; local OOF audit records; atomic current-run pointer.
-- [ ] Test fold isolation, cloned model configuration, deterministic membership,
+- [x] Test fold isolation, cloned model configuration, deterministic membership,
   recomputation, protected paths and complete-run publication.
-- [ ] Implement all metrics/curves, model comparisons, held-out permutation and
+- [x] Implement all metrics/curves, model comparisons, held-out permutation and
   XGBoost SHAP stability, leakage/missingness checks, source/config snapshots.
-- [ ] Execute full real dataset evaluation; verify all outputs and protected hashes.
+- [x] Execute full real dataset evaluation; verify all outputs and protected hashes.
 
 ### 3. Read-only Lab API and downloads
 
@@ -62,29 +62,43 @@ Files: `backend/model_quality/{schemas,service,routes,exports}.py`, router mount
 Interfaces: `/api/v1/model-quality/{overview,models,cad,lad,lcx,rca,calibration,
 confusion-matrix,shap,class-distribution,reproducibility,report}` plus metrics,
 ROC/PR/stability diagnostics and format/section exports.
-- [ ] Test missing/corrupt/stale runs, threshold boundaries, all endpoint results,
+- [x] Test missing/corrupt/stale runs, threshold boundaries, all endpoint results,
   export formats, cache reuse and no inference/database writes.
-- [ ] Implement typed validation, cache invalidation, aggregate-only exports,
+- [x] Implement typed validation, cache invalidation, aggregate-only exports,
   sanitised errors and PDF/CSV/JSON downloads.
-- [ ] Run API tests; render and inspect evaluation PDF pages.
+- [x] Run API tests; render and inspect evaluation PDF pages.
 
 ### 4. Frontend Lab
 
 Files: new typed `modelQuality` API/hooks/page/chart files, MainLayout/Header
 integration and scoped stylesheet; component tests.
-- [ ] Test real API-contract rendering, selectors, sort/threshold changes,
+- [x] Test real API-contract rendering, selectors, sort/threshold changes,
   missing/stale/retry states, downloads and workspace preservation.
-- [ ] Implement all 12 requested sections with real saved data, lazy SVG graphs,
+- [x] Implement all 12 requested sections with real saved data, lazy SVG graphs,
   reusable request hooks/charts, dark mode and mobile/accessibility support.
-- [ ] Run all frontend tests and build; inspect lazy chunks.
+- [x] Run all frontend tests and build; inspect lazy chunks.
 
 ### 5. Review and handoff
 
-- [ ] Document reproduction commands, run outputs, model selection trade-offs and
+- [x] Document reproduction commands, run outputs, model selection trade-offs and
   remaining deployment/clinical constraints.
-- [ ] Independent ML/clinical and engineering reviews; fix major findings with
+- [x] Independent ML/clinical and engineering reviews; fix major findings with
   regression tests. Re-run full suites and integrity verification.
-- [ ] Record completed tasks/results here. Leave prior unrelated changes intact.
+- [x] Record completed tasks/results here. Leave prior unrelated changes intact.
+
+## Completion evidence
+
+- Fresh real run: `4c4634aad0894d779f981f9362d3c49a`; 303 cohort records, 4 outcomes,
+  10 evaluated configurations, 10 stratified outer folds and 5 inner calibration folds.
+- Full rerun against the prior run produced identical fold memberships, OOF
+  probabilities and aggregate metrics (maximum absolute difference `0.0`). Dataset
+  and deployed model hashes also matched. Transient CatBoost pickle fingerprints can
+  vary across identical prediction runs; they identify exact temporary artifacts,
+  while the deployed bundle hash is stable.
+- The run passed OOF recomputation, archived-source verification and the live API
+  returned real summaries, threshold counts, selected curve overlays and PDF exports.
+- The existing port 8000 server uses a different Anaconda ML environment; the API
+  serves the evidence as stale until it is restarted with the project's pinned `.venv`.
 
 ## Execution decision
 

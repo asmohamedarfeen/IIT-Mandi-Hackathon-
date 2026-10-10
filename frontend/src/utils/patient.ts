@@ -1,6 +1,9 @@
 import type { PatientData, SamplePatient } from "./types";
 export const DEFAULT_PATIENT: PatientData = {
   patient_id: "",
+  assessment_mode: "demo",
+  confirmed_measurements: [],
+  input_sources: {},
   Age: 55,
   Sex: "Male",
   Weight: 72,
@@ -58,8 +61,9 @@ export const DEFAULT_PATIENT: PatientData = {
   VHD: "N",
 };
 
+type MeasurementKey = Exclude<keyof PatientData, "patient_id" | "assessment_mode" | "confirmed_measurements" | "input_sources">;
 export type Field = {
-  key: keyof PatientData;
+  key: MeasurementKey;
   label: string;
   unit?: string;
   min?: number;
@@ -68,13 +72,13 @@ export type Field = {
   options?: string[];
 };
 const yesNo = ["No", "Yes"];
-const binary = (key: keyof PatientData, label: string = key): Field => ({
+const binary = (key: MeasurementKey, label: string = key): Field => ({
   key,
   label,
   options: yesNo,
 });
 const number = (
-  key: keyof PatientData,
+  key: MeasurementKey,
   label: string,
   unit: string,
   min: number,
@@ -191,10 +195,16 @@ export function normalizePatient(
     ...DEFAULT_PATIENT,
     patient_id: id,
   };
+  output.assessment_mode = raw.assessment_mode === "reviewed" ? "reviewed" : "demo";
+  output.confirmed_measurements = Array.isArray(raw.confirmed_measurements) ? [...raw.confirmed_measurements] : [];
+  const sources: NonNullable<PatientData["input_sources"]> = {};
+  const previousSources = raw.input_sources as PatientData["input_sources"];
   for (const { fields } of FIELD_GROUPS)
     for (const field of fields) {
       // Sample responses also contain engineered features; send only raw inputs.
-      const value = raw[field.key] ?? output[field.key];
+      const explicitlyUnknown = Object.prototype.hasOwnProperty.call(raw, field.key) && (raw[field.key] == null || raw[field.key] === "");
+      const value = explicitlyUnknown ? NaN : raw[field.key] ?? output[field.key];
+      sources[field.key] = explicitlyUnknown ? "unknown" : previousSources?.[field.key] ?? (raw === DEFAULT_PATIENT || raw[field.key] == null ? "defaulted" : "supplied");
       if (field.options) {
         const aliases: Record<string, number> =
           field.key === "Sex"
@@ -215,9 +225,11 @@ export function normalizePatient(
       } else output[field.key] = Number(value);
     }
   output.BMI =
-    raw.BMI != null
+    raw.BMI != null && raw !== DEFAULT_PATIENT && previousSources?.BMI !== "calculated"
       ? Number(raw.BMI)
       : Number(output.Weight) / (Number(output.Length) / 100) ** 2;
+  sources.BMI = previousSources?.BMI ?? (raw === DEFAULT_PATIENT || raw.BMI == null ? "calculated" : "supplied");
+  output.input_sources = sources;
   return output as unknown as PatientData;
 }
 export function updatePatient(
@@ -225,9 +237,13 @@ export function updatePatient(
   key: keyof PatientData,
   value: string | number,
 ): PatientData {
-  const next = { ...patient, [key]: value };
-  if (key === "Weight" || key === "Length")
+  const next = { ...patient, [key]: value, confirmed_measurements: (patient.confirmed_measurements ?? []).filter(item => item !== key), input_sources: { ...patient.input_sources } };
+  if (key !== "patient_id") next.input_sources[key] = typeof value === "number" && !Number.isFinite(value) ? "unknown" : "supplied";
+  if (key === "Weight" || key === "Length") {
     next.BMI = next.Weight / (next.Length / 100) ** 2;
+    next.input_sources.BMI = "calculated";
+    next.confirmed_measurements = next.confirmed_measurements.filter(item => item !== "BMI");
+  }
   return next;
 }
 export function sampleVessels(sample: SamplePatient): string {
@@ -240,4 +256,11 @@ export function sampleVessels(sample: SamplePatient): string {
       )
       .join(" + ") || "See recorded labels"
   );
+}
+
+export function reviewedIssues(patient: PatientData): string[] {
+  if (patient.assessment_mode !== "reviewed") return [];
+  const missing = FIELD_GROUPS.flatMap(group => group.fields).filter(field => field.key !== "Exertional CP" && (!patient.confirmed_measurements?.includes(field.key) || patient.input_sources?.[field.key] !== "supplied")).map(field => field.key);
+  if (patient.input_sources?.BMI === "supplied" && !patient.confirmed_measurements?.includes("BMI")) missing.push("BMI");
+  return missing;
 }

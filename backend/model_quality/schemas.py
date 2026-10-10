@@ -46,6 +46,17 @@ def probability(value, nullable=False):
         raise ValueError('Probability outside [0,1]')
 
 
+def evidence_equal(expected, actual):
+    """Compare rederived values across pinned-library patch/platform rounding."""
+    if isinstance(expected, dict) and isinstance(actual, dict):
+        return expected.keys() == actual.keys() and all(evidence_equal(expected[key], actual[key]) for key in expected)
+    if isinstance(expected, list) and isinstance(actual, list):
+        return len(expected) == len(actual) and all(evidence_equal(a, b) for a, b in zip(expected, actual))
+    if isinstance(expected, (int, float)) and not isinstance(expected, bool) and isinstance(actual, (int, float)) and not isinstance(actual, bool):
+        return math.isclose(expected, actual, rel_tol=1e-9, abs_tol=1e-12)
+    return expected == actual
+
+
 class Summary(BaseModel):
     model_config = ConfigDict(extra='forbid', strict=True)
     schema_version: Literal[1]
@@ -227,22 +238,22 @@ class OOF(BaseModel):
                         raise ValueError('OOF metric mismatch')
                 if any(entry['diagnostics']['confusion_matrix'][key] != computed[key] for key in ('tn', 'fp', 'fn', 'tp')):
                     raise ValueError('OOF confusion mismatch')
-                if entry['diagnostics'] != diagnostics(labels, values):
+                if not evidence_equal(entry['diagnostics'], diagnostics(labels, values, threshold)):
                     raise ValueError('OOF diagnostic mismatch')
                 probabilities_array = np.asarray(values)
                 recomputed_folds = []
                 for fold, recorded in zip(expected['folds'], entry['fold_metrics']):
                     mask = folds_array == fold['fold']
-                    metrics = binary_metrics(labels_array[mask], probabilities_array[mask])
+                    metrics = binary_metrics(labels_array[mask], probabilities_array[mask], threshold)
                     metrics = {key: metrics[key] for key in METRIC_KEYS}
-                    if any(recorded.get(key) != value for key, value in metrics.items()):
+                    if not evidence_equal({key: recorded.get(key) for key in METRIC_KEYS}, metrics):
                         raise ValueError('OOF fold metric mismatch')
                     recomputed_folds.append(metrics)
                 if 'fold_summary' in entry:
                     dispersion = {key: {'mean': float(np.mean([row[key] for row in recomputed_folds if row[key] is not None])),
                                         'std': float(np.std([row[key] for row in recomputed_folds if row[key] is not None], ddof=1))}
                                   for key in METRIC_KEYS if sum(row[key] is not None for row in recomputed_folds) >= 2}
-                    if entry['fold_summary'] != dispersion:
+                    if not evidence_equal(entry['fold_summary'], dispersion):
                         raise ValueError('OOF fold dispersion mismatch')
             names = summary.provenance.get('feature_names', [])
             if any(expected[key]['features'] for key in ('feature_stability', 'shap_stability')):
@@ -253,5 +264,5 @@ class OOF(BaseModel):
                 means = [np.abs(shap[folds_array == fold['fold']]).mean(axis=0) for fold in expected['folds']]
                 for key, values in [('shap_stability', means), ('feature_stability', explanation.get('permutation_fold_importance', []))]:
                     recorded = expected[key]
-                    if stability_summary(values, names, recorded['method'], recorded['top_k']) != recorded:
+                    if not evidence_equal(stability_summary(values, names, recorded['method'], recorded['top_k']), recorded):
                         raise ValueError('OOF stability mismatch')

@@ -1,0 +1,6 @@
+# Explicit opt-in: includes private cohort evidence. Keep this host path protected.
+# docker compose -f deploy/docker/docker-compose.yml -f deploy/docker/docker-compose.quality.yml up --build
+services:
+  backend:
+    volumes:
+      - ../../artifacts/model_quality:/app/quality-evidence:ro

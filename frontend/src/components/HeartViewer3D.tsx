@@ -218,6 +218,7 @@ export function HeartViewer3D({
     const lost = (event: Event) => {
       event.preventDefault();
       setWebglError(true);
+      loopRef.current?.setActive(false);
     };
     renderer.domElement.addEventListener("webglcontextlost", lost);
     const start = performance.now();
@@ -334,9 +335,9 @@ export function HeartViewer3D({
       )}
       <div className="heart-canvas" ref={host} />
       {(!anatomyData || webglError) && (
-        <div className="viewer-state" role="status">
+        <div className="viewer-state">
           <HeartPulse size={32} />
-          <p>
+          <p role="status">
             {webglError
               ? "The 3D view is unavailable in this browser."
               : error
@@ -354,7 +355,18 @@ export function HeartViewer3D({
               Retry 3D view
             </button>
           )}
-          <small>Assessment results remain available below.</small>
+          <table className="vessel-fallback">
+            <caption>Coronary vessel assessment · reference anatomy</caption>
+            <thead><tr><th scope="col">Vessel</th><th scope="col">Model result</th></tr></thead>
+            <tbody>{VESSELS.map(vessel => {
+              const risk = currentPrediction?.vessels[vessel.key.toUpperCase() as "LAD" | "LCX" | "RCA"];
+              return <tr key={vessel.key}>
+                <th scope="row"><button aria-label={`Select ${vessel.key.toUpperCase()} detail`} aria-pressed={focus === vessel.key} onClick={() => { setMode("risk"); focusVessel(vessel.key); }}>{vessel.key.toUpperCase()}</button></th>
+                <td>{stale ? "Needs reassessment" : risk ? `${risk.probability_percent.toFixed(1)}% · ${risk.risk_level} · ${risk.predicted_status ?? "Status unavailable"}` : "Awaiting assessment"}</td>
+              </tr>;
+            })}</tbody>
+          </table>
+          <small>Select a vessel for its detail and linked evidence below.</small>
         </div>
       )}
       <div className="stage-side">

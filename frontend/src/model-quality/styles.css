@@ -94,6 +94,7 @@
 .mq-confusion-table td strong { display: block; font-size: 25px; margin-bottom: 7px; color: var(--mq-ink); }
 .mq-threshold-metrics { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); align-content: center; margin: 0; }
 .mq-chart { max-width: 800px; }
+.mq-operating-point circle { fill: var(--mq-accent); stroke: var(--mq-surface); stroke-width: 3px; }
 .mq-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
 .mq-axis line { stroke: var(--mq-line); stroke-width: 1; }
 .mq-axis text, .mq-axis-label { fill: var(--mq-muted); font-family: inherit; font-size: 12px; }

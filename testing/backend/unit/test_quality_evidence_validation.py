@@ -42,7 +42,8 @@ def test_shap_and_feature_stability_are_recomputed_from_private_audit(evidence):
         local['splits'] = [{'fold': i, 'train_indices': np.flatnonzero(folds != i).tolist(), 'test_indices': np.flatnonzero(folds == i).tolist()} for i in (1, 2, 3)]
         local['explanation_audit'] = {'shap_values': shap.tolist(), 'permutation_fold_importance': permutation}
         expected = summary['targets'][target]
-        expected['models']['CalibratedVoting']['fold_model_hashes'] = ['a' * 64] * 3
+        for model in expected['models'].values():
+            model['fold_model_hashes'] = ['a' * 64] * 3
         expected['shap_stability'] = stability_summary([abs(shap[folds == i]).mean(axis=0) for i in (1, 2, 3)], names, 'test audit')
         expected['feature_stability'] = stability_summary(permutation, names, 'test audit')
     OOF.model_validate(audit).validate_against(Summary.model_validate(summary))

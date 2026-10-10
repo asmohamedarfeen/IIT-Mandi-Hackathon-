@@ -1,0 +1,4 @@
+# Browser traces can include de-identified measurements; never publish them.
+test-results/
+playwright-report/
+playwright/.cache/

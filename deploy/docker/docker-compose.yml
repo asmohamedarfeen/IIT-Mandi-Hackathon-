@@ -1,31 +1,31 @@
-version: '3.8'
-
 services:
   backend:
     build:
       context: ../../
       dockerfile: deploy/docker/Dockerfile.backend
-    container_name: cardiovision-backend
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
     environment:
       - PORT=8000
-      - DATABASE_URL=sqlite:////app/db/cardiovision.db
+      - DATABASE_URL=sqlite:////app/data/cardiovision.db
       - ARTIFACTS_DIR=/app/artifacts
+      - MODEL_QUALITY_DIR=/app/quality-evidence
+      - AUTO_CREATE_TABLES=false
+      - API_TOKEN=${API_TOKEN:-}
     volumes:
-      - db-data:/app/db
+      - db-data:/app/data
 
   frontend:
     build:
       context: ../../
       dockerfile: deploy/docker/Dockerfile.frontend
-    container_name: cardiovision-frontend
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "127.0.0.1:${FRONTEND_PORT:-8080}:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
 volumes:
   db-data:

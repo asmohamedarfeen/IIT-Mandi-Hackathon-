@@ -4,6 +4,7 @@ Core application settings and environment configuration.
 
 import os
 from typing import List
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -11,6 +12,9 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "CardioVision AI"
     VERSION: str = "1.0.0"
     API_V1_PREFIX: str = "/api/v1"
+    # Optional coarse deployment guard. This is not user identity or record ACLs.
+    API_TOKEN: str = ""
+    AUTO_CREATE_TABLES: bool = True  # Docker runs Alembic and disables this fallback.
     
     # Database
     DATABASE_URL: str = os.getenv(
@@ -33,9 +37,15 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
-        "http://localhost:8000",
-        "*"
+        "http://localhost:8000"
     ]
+
+    @field_validator("ALLOWED_ORIGINS")
+    @classmethod
+    def explicit_origins(cls, origins):
+        if any(origin == "*" for origin in origins):
+            raise ValueError("ALLOWED_ORIGINS must list explicit origins; wildcard access is disabled.")
+        return origins
 
     class Config:
         env_file = ".env"

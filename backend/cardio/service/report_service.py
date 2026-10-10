@@ -65,25 +65,57 @@ def generate_evidence_report(prediction: PredictionResponse) -> bytes:
     story += [p(f"Case reference: {prediction.patient_id}"), p(f"Assessment ID: {evidence.assessment_id}"), p(f"Inference completed (UTC): {evidence.generated_at}"), Spacer(1, 16), p("Four model predictions", "Section")]
     risks = {"CAD": prediction.overall_cad, **prediction.vessels}
     story.append(table([["Target", "Model probability", "Display category"], *[[target, f"{risks[target].probability_percent:.1f}%", risks[target].risk_level] for target in ("CAD", "LAD", "LCX", "RCA")]], [65, 130, 316]))
-    story += [Spacer(1, 14), p("Whole-vessel probabilities do not measure percentage blockage or locate a lesion. CAD is the overall coronary disease target; LAD, LCX and RCA are artery targets."), p("Display bands: green <35%; amber 35% to <65%; red >=65%. These are application display thresholds, not validated clinical decision boundaries."), Spacer(1, 14), p("Model provenance", "Section"), p(f"Application version: {evidence.application_version}"), p(f"Prediction: {evidence.prediction_model}"), p(f"Explanation: {evidence.explanation_model}"), p("Model artifact version (SHA-256):", "SmallCopy"), p(evidence.model_artifact_sha256 or "Unavailable", "SmallCopy"), p("A semantic training/model release version was not supplied. The artifact hash identifies the exact saved weights.", "SmallCopy"), p("This report reproduces the stored assessment snapshot. Downloading it does not rerun inference or use subsequently edited form values.")]
+    story += [Spacer(1, 14), p("Whole-vessel probabilities do not measure percentage blockage or locate a lesion. CAD is the overall coronary disease target; LAD, LCX and RCA are artery targets."), p("Display bands: green <35%; amber 35% to <65%; red >=65%. These are application display thresholds, not validated clinical decision boundaries."), Spacer(1, 14), p("Model provenance", "Section"), p(f"Application version: {evidence.application_version}"), p(f"Prediction: {evidence.prediction_model}"), p(f"Explanation: {evidence.explanation_model}"), p("Model artifact version (SHA-256):", "SmallCopy"), p(evidence.model_artifact_sha256 or "Unavailable", "SmallCopy"), p("The artifact hash identifies the exact saved weights; release-specific validation is listed below.", "SmallCopy"), p("This report reproduces the stored assessment snapshot. Downloading it does not rerun inference or use subsequently edited form values.")]
 
     story += [PageBreak(), p("Assessed input measurements", "Section"), p("Validated values used for this inference. Categories include their model code. Measurement units appear in the labels; numerical display is rounded to six significant digits.")]
+    provenance = evidence.input_provenance
+    measurements = provenance.get("measurements", {})
+    story.append(p(f"Assessment mode: {provenance.get('assessment_mode', 'unavailable (historical snapshot)')}"))
+    story.append(p("Sources and confirmation are assessor declarations. Demo defaults are assumptions; reviewed confirmation is an attestation, not clinical validation.", "SmallCopy"))
     entries = list(evidence.clinical_inputs.items())
     half = (len(entries) + 1) // 2
     rows = [["Measurement", "Assessed value", "Measurement", "Assessed value"]]
     for left, right in zip_longest(entries[:half], entries[half:]):
         row = []
         for entry in (left, right):
-            row.extend([MEASUREMENT_LABELS.get(entry[0], entry[0]), _value(*entry)] if entry else ["", ""])
+            if entry:
+                key, value = entry
+                metadata = measurements.get(key)
+                source = f"{metadata.get('source', 'unavailable')}; {'confirmed' if metadata.get('confirmed') else 'unconfirmed'}" if metadata else "Source/confirmation unavailable"
+                if key == "Exertional CP":
+                    source += "; Informational; excluded from model"
+                row.extend([MEASUREMENT_LABELS.get(key, key), f"{_value(key, value)}; {source}"])
+            else:
+                row.extend(["", ""])
         rows.append(row)
     story.append(table(rows, [170, 85, 171, 85], padding=4))
-    story += [Spacer(1, 10), p("BMI can be supplied or calculated from height and weight. These are recorded clinical inputs, not direct measurements of artery blockage.", "SmallCopy")]
+    story += [Spacer(1, 10), p("BMI can be supplied or calculated from height and weight. Source labels distinguish supplied measurements from synthetic defaults. Inputs do not directly measure artery blockage.", "SmallCopy")]
 
     for target in ("CAD", "LAD", "LCX", "RCA"):
         risk = risks[target]
         story += [PageBreak(), p(f"{target} / prediction and explanation", "Section"), p(f"Model probability: {risk.probability_percent:.1f}% | {risk.risk_level}"), p(risk.anatomical_description)]
+        if risk.predicted_status:
+            story.append(p(f'Predicted status: {risk.predicted_status} | Classification threshold: {risk.decision_threshold * 100:.1f}%'))
         if target != "CAD":
             story.append(p(f"Risk-map source: vessel_colors_3d.{target.lower()} = {prediction.vessel_colors_3d[target.lower()]} | model probability = {risk.probability}"))
+        explanation = prediction.prediction_explanations.get(target)
+        story += [Spacer(1, 12), p("Deployed predictor explanation", "Section")]
+        if explanation:
+            reconstructed = explanation.baseline_probability + sum(group.contribution for group in explanation.groups)
+            story += [p(f"Method: {explanation.method}"), p("Reference: Synthetic default profile. This synthetic profile is not a healthy-patient control."),
+                      p(f"Baseline probability: {explanation.baseline_probability * 100:.4f}%"),
+                      p(f"Assessed predictor probability: {explanation.predicted_probability * 100:.4f}%"),
+                      p(f"Reconstructed probability: {reconstructed * 100:.4f}% | Reconstruction error: {explanation.reconstruction_error:.6g} probability units"),
+                      p("Domain contributions add to the baseline to reconstruct the deployed calibrated predictor probability. Positive contributions increase that output; negative contributions decrease it. They are allocations relative to the reference, not causal effects or treatment advice.")]
+            rows = [["Domain", "Contribution"]] + [[group.label, f"{group.contribution * 100:+.4f} probability points"] for group in explanation.groups]
+            story.append(table(rows, [330, 181], padding=5))
+            for group in explanation.groups:
+                sources = [f"{MEASUREMENT_LABELS.get(source.input_key, source.input_key)}: {_value(source.input_key, evidence.clinical_inputs[source.input_key])}" for source in group.source_measurements if source.input_key in evidence.clinical_inputs]
+                story.append(p(f"{group.label} assessed sources: " + ("; ".join(sources) or "Unavailable"), "SmallCopy"))
+            story.append(p(explanation.limitations, "SmallCopy"))
+        else:
+            story.append(p("Deployed explanation unavailable in this saved assessment. Historical factors below do not reconstruct the deployed prediction."))
+        story += [PageBreak(), p(f"{target} / Historical independent XGBoost factors", "Section")]
         story += [p("Patient-specific factors ranked by absolute contribution. Positive values increase the independent XGBoost output; negative values decrease it. Units are log-odds relative to that model's baseline, not changes in ensemble probability."), Spacer(1, 8)]
         factors = sorted(prediction.shap_explanations.get(target, []), key=lambda item: abs(item.contribution), reverse=True)
         if not factors:

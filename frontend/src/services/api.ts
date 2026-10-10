@@ -38,6 +38,7 @@ export const apiService = {
     const query = new URLSearchParams({ format: options.format, section: options.section });
     if (options.target) query.set("target", options.target);
     if (options.model) query.set("model", options.model);
+    if (options.models?.length) query.set("models", options.models.join(","));
     if (options.threshold !== undefined) query.set("threshold", String(options.threshold));
     if (options.expected_run_id) query.set("expected_run_id", options.expected_run_id);
     const response = await fetch(`${API_BASE_URL}/model-quality/report?${query}`, { signal, cache: "no-store" });

@@ -1,0 +1,2039 @@
+{
+  "release_id": "20261010T044519Z-77a76019",
+  "deployed": true,
+  "dataset_sha256": "739343245c2ba578b541370217531750d8e936022f928b83e0d91756caa3ff0b",
+  "summary_sha256": "1934587ed1be6b40de28bb6004969c12810a29c2c7d3284207a7d1dfcd4c25a8",
+  "oof_sha256": "0c88fc9fd46f36b8981ac122429b00732a1edea7624f2420a1b8bc7f28848c7a",
+  "method": "Reaggregation of archived outer-OOF release-selection procedure, using each outer-fold selected threshold; retained targets use baseline threshold. Does not score final fitted weights.",
+  "limitations": [
+    "No new validation or improvement experiment is performed.",
+    "Release selected after inspecting outer outcomes; prior tuning and cohort reuse add selection bias.",
+    "Subgroups were chosen after model development and are exploratory; no confidence or fairness claims.",
+    "Small groups have unstable estimates; denominators are explicitly reported.",
+    "No patient rows, identifiers, individual predictions or probabilities are exported."
+  ],
+  "targets": {
+    "CAD": {
+      "promoted": false,
+      "selected_prediction_source": "Retained baseline OOF decisions",
+      "error_patterns": {
+        "groups": {
+          "false_negative": {
+            "n": 13,
+            "measurements": {
+              "Age": {
+                "available": 13,
+                "missing": 0,
+                "median": 50.0,
+                "q1": 48.0,
+                "q3": 55.0
+              },
+              "BP": {
+                "available": 13,
+                "missing": 0,
+                "median": 130.0,
+                "q1": 120.0,
+                "q3": 130.0
+              },
+              "FBS": {
+                "available": 13,
+                "missing": 0,
+                "median": 96.0,
+                "q1": 90.0,
+                "q3": 103.0
+              },
+              "CR": {
+                "available": 13,
+                "missing": 0,
+                "median": 1.0,
+                "q1": 0.8,
+                "q3": 1.1
+              },
+              "TG": {
+                "available": 13,
+                "missing": 0,
+                "median": 112.0,
+                "q1": 93.0,
+                "q3": 157.0
+              },
+              "LDL": {
+                "available": 13,
+                "missing": 0,
+                "median": 112.0,
+                "q1": 75.0,
+                "q3": 137.0
+              },
+              "HDL": {
+                "available": 13,
+                "missing": 0,
+                "median": 45.0,
+                "q1": 42.0,
+                "q3": 50.0
+              },
+              "EF-TTE": {
+                "available": 13,
+                "missing": 0,
+                "median": 50.0,
+                "q1": 45.0,
+                "q3": 50.0
+              }
+            }
+          },
+          "false_positive": {
+            "n": 21,
+            "measurements": {
+              "Age": {
+                "available": 21,
+                "missing": 0,
+                "median": 57.0,
+                "q1": 48.0,
+                "q3": 65.0
+              },
+              "BP": {
+                "available": 21,
+                "missing": 0,
+                "median": 130.0,
+                "q1": 120.0,
+                "q3": 140.0
+              },
+              "FBS": {
+                "available": 21,
+                "missing": 0,
+                "median": 96.0,
+                "q1": 88.0,
+                "q3": 119.0
+              },
+              "CR": {
+                "available": 21,
+                "missing": 0,
+                "median": 1.0,
+                "q1": 0.9,
+                "q3": 1.1
+              },
+              "TG": {
+                "available": 21,
+                "missing": 0,
+                "median": 120.0,
+                "q1": 90.0,
+                "q3": 150.0
+              },
+              "LDL": {
+                "available": 21,
+                "missing": 0,
+                "median": 110.0,
+                "q1": 92.0,
+                "q3": 129.0
+              },
+              "HDL": {
+                "available": 21,
+                "missing": 0,
+                "median": 42.0,
+                "q1": 30.0,
+                "q3": 44.0
+              },
+              "EF-TTE": {
+                "available": 21,
+                "missing": 0,
+                "median": 55.0,
+                "q1": 45.0,
+                "q3": 55.0
+              }
+            }
+          },
+          "true_positive": {
+            "n": 203,
+            "measurements": {
+              "Age": {
+                "available": 203,
+                "missing": 0,
+                "median": 62.0,
+                "q1": 55.0,
+                "q3": 70.0
+              },
+              "BP": {
+                "available": 203,
+                "missing": 0,
+                "median": 130.0,
+                "q1": 120.0,
+                "q3": 140.0
+              },
+              "FBS": {
+                "available": 203,
+                "missing": 0,
+                "median": 104.0,
+                "q1": 90.0,
+                "q3": 152.0
+              },
+              "CR": {
+                "available": 203,
+                "missing": 0,
+                "median": 1.0,
+                "q1": 0.9,
+                "q3": 1.2
+              },
+              "TG": {
+                "available": 203,
+                "missing": 0,
+                "median": 130.0,
+                "q1": 96.0,
+                "q3": 192.5
+              },
+              "LDL": {
+                "available": 203,
+                "missing": 0,
+                "median": 99.0,
+                "q1": 78.5,
+                "q3": 121.0
+              },
+              "HDL": {
+                "available": 203,
+                "missing": 0,
+                "median": 39.0,
+                "q1": 33.0,
+                "q3": 45.0
+              },
+              "EF-TTE": {
+                "available": 203,
+                "missing": 0,
+                "median": 45.0,
+                "q1": 40.0,
+                "q3": 52.5
+              }
+            }
+          },
+          "true_negative": {
+            "n": 66,
+            "measurements": {
+              "Age": {
+                "available": 66,
+                "missing": 0,
+                "median": 51.0,
+                "q1": 47.0,
+                "q3": 56.0
+              },
+              "BP": {
+                "available": 66,
+                "missing": 0,
+                "median": 120.0,
+                "q1": 110.0,
+                "q3": 130.0
+              },
+              "FBS": {
+                "available": 66,
+                "missing": 0,
+                "median": 90.0,
+                "q1": 84.0,
+                "q3": 103.5
+              },
+              "CR": {
+                "available": 66,
+                "missing": 0,
+                "median": 1.0,
+                "q1": 0.9,
+                "q3": 1.1
+              },
+              "TG": {
+                "available": 66,
+                "missing": 0,
+                "median": 102.5,
+                "q1": 85.0,
+                "q3": 130.75
+              },
+              "LDL": {
+                "available": 66,
+                "missing": 0,
+                "median": 100.5,
+                "q1": 88.0,
+                "q3": 124.25
+              },
+              "HDL": {
+                "available": 66,
+                "missing": 0,
+                "median": 41.5,
+                "q1": 34.25,
+                "q3": 46.75
+              },
+              "EF-TTE": {
+                "available": 66,
+                "missing": 0,
+                "median": 55.0,
+                "q1": 50.0,
+                "q3": 55.0
+              }
+            }
+          }
+        },
+        "limitations": "Exploratory post-development comparisons; not causal effects or independent validation. Quartiles suppressed when fewer than 10 measurements are available. Counts are descriptive; no patient rows or measurement ranges are exported."
+      },
+      "paired_baseline_comparison": {
+        "newly_correct": 0,
+        "newly_wrong": 0,
+        "net_correct_change": 0,
+        "accuracy_difference": 0.0,
+        "fold_accuracy_differences": [
+          {
+            "fold": 1,
+            "n": 31,
+            "difference": 0.0
+          },
+          {
+            "fold": 2,
+            "n": 31,
+            "difference": 0.0
+          },
+          {
+            "fold": 3,
+            "n": 31,
+            "difference": 0.0
+          },
+          {
+            "fold": 4,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 5,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 6,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 7,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 8,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 9,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 10,
+            "n": 30,
+            "difference": 0.0
+          }
+        ],
+        "uncertainty_note": "Fold differences are descriptive. Overlapping training sets, post hoc release selection and earlier cohort reuse prevent treating folds/rows as independent untouched experiments. No significance claim or inferential confidence interval."
+      },
+      "feature_availability": {
+        "missing_recorded_values": 0,
+        "note": "Recorded workbook complete; application defaulted inputs need separate prospective evaluation"
+      },
+      "majority_baseline": {
+        "prediction": 1,
+        "n": 303,
+        "correct": 216,
+        "accuracy": 0.7128712871287128
+      },
+      "subgroups": {
+        "all": {
+          "n": 303,
+          "positive": 216,
+          "negative": 87,
+          "metrics": {
+            "tn": 66,
+            "fp": 21,
+            "fn": 13,
+            "tp": 203,
+            "accuracy": 0.8877887788778878,
+            "recall": 0.9398148148148148,
+            "specificity": 0.7586206896551724,
+            "roc_auc": 0.9455619412515963,
+            "brier_score": 0.07965880808975781
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "sex_female": {
+          "n": 127,
+          "positive": 86,
+          "negative": 41,
+          "metrics": {
+            "tn": 34,
+            "fp": 7,
+            "fn": 5,
+            "tp": 81,
+            "accuracy": 0.905511811023622,
+            "recall": 0.9418604651162791,
+            "specificity": 0.8292682926829268,
+            "roc_auc": 0.9580260918888259,
+            "brier_score": 0.0722778528593204
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "sex_male": {
+          "n": 176,
+          "positive": 130,
+          "negative": 46,
+          "metrics": {
+            "tn": 32,
+            "fp": 14,
+            "fn": 8,
+            "tp": 122,
+            "accuracy": 0.875,
+            "recall": 0.9384615384615385,
+            "specificity": 0.6956521739130435,
+            "roc_auc": 0.9349498327759198,
+            "brier_score": 0.08498483828444846
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "age_below_55": {
+          "n": 108,
+          "positive": 57,
+          "negative": 51,
+          "metrics": {
+            "tn": 41,
+            "fp": 10,
+            "fn": 8,
+            "tp": 49,
+            "accuracy": 0.8333333333333334,
+            "recall": 0.8596491228070176,
+            "specificity": 0.803921568627451,
+            "roc_auc": 0.9232886136910905,
+            "brier_score": 0.11433881317733181
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "age_55_or_more": {
+          "n": 195,
+          "positive": 159,
+          "negative": 36,
+          "metrics": {
+            "tn": 25,
+            "fp": 11,
+            "fn": 5,
+            "tp": 154,
+            "accuracy": 0.9179487179487179,
+            "recall": 0.9685534591194969,
+            "specificity": 0.6944444444444444,
+            "roc_auc": 0.9399021663172606,
+            "brier_score": 0.06045142065663991
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "DM_present": {
+          "n": 90,
+          "positive": 80,
+          "negative": 10,
+          "metrics": {
+            "tn": 6,
+            "fp": 4,
+            "fn": 1,
+            "tp": 79,
+            "accuracy": 0.9444444444444444,
+            "recall": 0.9875,
+            "specificity": 0.6,
+            "roc_auc": 0.9824999999999999,
+            "brier_score": 0.03635603110132913
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "DM_absent": {
+          "n": 213,
+          "positive": 136,
+          "negative": 77,
+          "metrics": {
+            "tn": 60,
+            "fp": 17,
+            "fn": 12,
+            "tp": 124,
+            "accuracy": 0.863849765258216,
+            "recall": 0.9117647058823529,
+            "specificity": 0.7792207792207793,
+            "roc_auc": 0.9276165011459129,
+            "brier_score": 0.09795575611303753
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "HTN_present": {
+          "n": 179,
+          "positive": 147,
+          "negative": 32,
+          "metrics": {
+            "tn": 21,
+            "fp": 11,
+            "fn": 7,
+            "tp": 140,
+            "accuracy": 0.8994413407821229,
+            "recall": 0.9523809523809523,
+            "specificity": 0.65625,
+            "roc_auc": 0.9251700680272109,
+            "brier_score": 0.07226842312978334
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "HTN_absent": {
+          "n": 124,
+          "positive": 69,
+          "negative": 55,
+          "metrics": {
+            "tn": 45,
+            "fp": 10,
+            "fn": 6,
+            "tp": 63,
+            "accuracy": 0.8709677419354839,
+            "recall": 0.9130434782608695,
+            "specificity": 0.8181818181818182,
+            "roc_auc": 0.9451910408432149,
+            "brier_score": 0.09032718637875323
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        }
+      },
+      "logistic_baseline": {
+        "method": "New fixed untuned logistic comparator OOF, 10 stratified folds seed42; training-only preprocessing/scaling; C1, max_iter2000, threshold0.5. Same historically reused cohort; no external validation.",
+        "metrics": {
+          "accuracy": 0.858085808580858,
+          "precision": 0.9023255813953488,
+          "recall": 0.8981481481481481,
+          "sensitivity": 0.8981481481481481,
+          "specificity": 0.7586206896551724,
+          "f1": 0.9002320185614849,
+          "roc_auc": 0.9177309493401447,
+          "pr_auc": 0.9662418525670404,
+          "average_precision": 0.9663260538674308,
+          "mcc": 0.6545434393242351,
+          "cohen_kappa": 0.6545223132606793,
+          "balanced_accuracy": 0.8283844189016603,
+          "log_loss": 0.40752414002808063,
+          "brier_score": 0.11204170362160304,
+          "ece": 0.07598272686388932
+        },
+        "confusion": {
+          "tn": 66,
+          "fp": 21,
+          "fn": 22,
+          "tp": 194,
+          "threshold": 0.5
+        }
+      }
+    },
+    "LAD": {
+      "promoted": false,
+      "selected_prediction_source": "Retained baseline OOF decisions",
+      "error_patterns": {
+        "groups": {
+          "false_negative": {
+            "n": 22,
+            "measurements": {
+              "Age": {
+                "available": 22,
+                "missing": 0,
+                "median": 56.0,
+                "q1": 50.0,
+                "q3": 62.75
+              },
+              "BP": {
+                "available": 22,
+                "missing": 0,
+                "median": 130.0,
+                "q1": 120.0,
+                "q3": 130.0
+              },
+              "FBS": {
+                "available": 22,
+                "missing": 0,
+                "median": 103.0,
+                "q1": 90.0,
+                "q3": 121.5
+              },
+              "CR": {
+                "available": 22,
+                "missing": 0,
+                "median": 0.95,
+                "q1": 0.8250000000000001,
+                "q3": 1.175
+              },
+              "TG": {
+                "available": 22,
+                "missing": 0,
+                "median": 103.0,
+                "q1": 88.25,
+                "q3": 160.75
+              },
+              "LDL": {
+                "available": 22,
+                "missing": 0,
+                "median": 102.5,
+                "q1": 78.25,
+                "q3": 114.25
+              },
+              "HDL": {
+                "available": 22,
+                "missing": 0,
+                "median": 40.0,
+                "q1": 36.0,
+                "q3": 45.0
+              },
+              "EF-TTE": {
+                "available": 22,
+                "missing": 0,
+                "median": 50.0,
+                "q1": 45.0,
+                "q3": 55.0
+              }
+            }
+          },
+          "false_positive": {
+            "n": 37,
+            "measurements": {
+              "Age": {
+                "available": 37,
+                "missing": 0,
+                "median": 62.0,
+                "q1": 52.0,
+                "q3": 66.0
+              },
+              "BP": {
+                "available": 37,
+                "missing": 0,
+                "median": 130.0,
+                "q1": 120.0,
+                "q3": 140.0
+              },
+              "FBS": {
+                "available": 37,
+                "missing": 0,
+                "median": 111.0,
+                "q1": 92.0,
+                "q3": 156.0
+              },
+              "CR": {
+                "available": 37,
+                "missing": 0,
+                "median": 1.0,
+                "q1": 0.9,
+                "q3": 1.2
+              },
+              "TG": {
+                "available": 37,
+                "missing": 0,
+                "median": 145.0,
+                "q1": 90.0,
+                "q3": 190.0
+              },
+              "LDL": {
+                "available": 37,
+                "missing": 0,
+                "median": 91.0,
+                "q1": 78.0,
+                "q3": 111.0
+              },
+              "HDL": {
+                "available": 37,
+                "missing": 0,
+                "median": 42.0,
+                "q1": 34.0,
+                "q3": 44.0
+              },
+              "EF-TTE": {
+                "available": 37,
+                "missing": 0,
+                "median": 50.0,
+                "q1": 45.0,
+                "q3": 55.0
+              }
+            }
+          },
+          "true_positive": {
+            "n": 155,
+            "measurements": {
+              "Age": {
+                "available": 155,
+                "missing": 0,
+                "median": 62.0,
+                "q1": 55.0,
+                "q3": 70.0
+              },
+              "BP": {
+                "available": 155,
+                "missing": 0,
+                "median": 130.0,
+                "q1": 120.0,
+                "q3": 140.0
+              },
+              "FBS": {
+                "available": 155,
+                "missing": 0,
+                "median": 102.0,
+                "q1": 90.0,
+                "q3": 148.5
+              },
+              "CR": {
+                "available": 155,
+                "missing": 0,
+                "median": 1.0,
+                "q1": 0.9,
+                "q3": 1.25
+              },
+              "TG": {
+                "available": 155,
+                "missing": 0,
+                "median": 130.0,
+                "q1": 96.5,
+                "q3": 192.5
+              },
+              "LDL": {
+                "available": 155,
+                "missing": 0,
+                "median": 104.0,
+                "q1": 78.0,
+                "q3": 124.0
+              },
+              "HDL": {
+                "available": 155,
+                "missing": 0,
+                "median": 39.0,
+                "q1": 33.0,
+                "q3": 45.0
+              },
+              "EF-TTE": {
+                "available": 155,
+                "missing": 0,
+                "median": 45.0,
+                "q1": 40.0,
+                "q3": 50.0
+              }
+            }
+          },
+          "true_negative": {
+            "n": 89,
+            "measurements": {
+              "Age": {
+                "available": 89,
+                "missing": 0,
+                "median": 52.0,
+                "q1": 48.0,
+                "q3": 57.0
+              },
+              "BP": {
+                "available": 89,
+                "missing": 0,
+                "median": 120.0,
+                "q1": 110.0,
+                "q3": 140.0
+              },
+              "FBS": {
+                "available": 89,
+                "missing": 0,
+                "median": 93.0,
+                "q1": 84.0,
+                "q3": 105.0
+              },
+              "CR": {
+                "available": 89,
+                "missing": 0,
+                "median": 1.0,
+                "q1": 0.9,
+                "q3": 1.1
+              },
+              "TG": {
+                "available": 89,
+                "missing": 0,
+                "median": 111.0,
+                "q1": 90.0,
+                "q3": 150.0
+              },
+              "LDL": {
+                "available": 89,
+                "missing": 0,
+                "median": 106.0,
+                "q1": 88.0,
+                "q3": 129.0
+              },
+              "HDL": {
+                "available": 89,
+                "missing": 0,
+                "median": 41.0,
+                "q1": 33.0,
+                "q3": 46.0
+              },
+              "EF-TTE": {
+                "available": 89,
+                "missing": 0,
+                "median": 55.0,
+                "q1": 50.0,
+                "q3": 55.0
+              }
+            }
+          }
+        },
+        "limitations": "Exploratory post-development comparisons; not causal effects or independent validation. Quartiles suppressed when fewer than 10 measurements are available. Counts are descriptive; no patient rows or measurement ranges are exported."
+      },
+      "paired_baseline_comparison": {
+        "newly_correct": 0,
+        "newly_wrong": 0,
+        "net_correct_change": 0,
+        "accuracy_difference": 0.0,
+        "fold_accuracy_differences": [
+          {
+            "fold": 1,
+            "n": 31,
+            "difference": 0.0
+          },
+          {
+            "fold": 2,
+            "n": 31,
+            "difference": 0.0
+          },
+          {
+            "fold": 3,
+            "n": 31,
+            "difference": 0.0
+          },
+          {
+            "fold": 4,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 5,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 6,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 7,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 8,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 9,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 10,
+            "n": 30,
+            "difference": 0.0
+          }
+        ],
+        "uncertainty_note": "Fold differences are descriptive. Overlapping training sets, post hoc release selection and earlier cohort reuse prevent treating folds/rows as independent untouched experiments. No significance claim or inferential confidence interval."
+      },
+      "feature_availability": {
+        "missing_recorded_values": 0,
+        "note": "Recorded workbook complete; application defaulted inputs need separate prospective evaluation"
+      },
+      "majority_baseline": {
+        "prediction": 1,
+        "n": 303,
+        "correct": 177,
+        "accuracy": 0.5841584158415841
+      },
+      "subgroups": {
+        "all": {
+          "n": 303,
+          "positive": 177,
+          "negative": 126,
+          "metrics": {
+            "tn": 89,
+            "fp": 37,
+            "fn": 22,
+            "tp": 155,
+            "accuracy": 0.8052805280528053,
+            "recall": 0.8757062146892656,
+            "specificity": 0.7063492063492064,
+            "roc_auc": 0.8683526141153259,
+            "brier_score": 0.14211456824053587
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "sex_female": {
+          "n": 127,
+          "positive": 67,
+          "negative": 60,
+          "metrics": {
+            "tn": 43,
+            "fp": 17,
+            "fn": 11,
+            "tp": 56,
+            "accuracy": 0.7795275590551181,
+            "recall": 0.835820895522388,
+            "specificity": 0.7166666666666667,
+            "roc_auc": 0.8291044776119403,
+            "brier_score": 0.16340735229632428
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "sex_male": {
+          "n": 176,
+          "positive": 110,
+          "negative": 66,
+          "metrics": {
+            "tn": 46,
+            "fp": 20,
+            "fn": 11,
+            "tp": 99,
+            "accuracy": 0.8238636363636364,
+            "recall": 0.9,
+            "specificity": 0.696969696969697,
+            "roc_auc": 0.8949035812672177,
+            "brier_score": 0.1267498888366431
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "age_below_55": {
+          "n": 108,
+          "positive": 44,
+          "negative": 64,
+          "metrics": {
+            "tn": 53,
+            "fp": 11,
+            "fn": 10,
+            "tp": 34,
+            "accuracy": 0.8055555555555556,
+            "recall": 0.7727272727272727,
+            "specificity": 0.828125,
+            "roc_auc": 0.8838778409090909,
+            "brier_score": 0.13978553668260713
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "age_55_or_more": {
+          "n": 195,
+          "positive": 133,
+          "negative": 62,
+          "metrics": {
+            "tn": 36,
+            "fp": 26,
+            "fn": 12,
+            "tp": 121,
+            "accuracy": 0.8051282051282052,
+            "recall": 0.9097744360902256,
+            "specificity": 0.5806451612903226,
+            "roc_auc": 0.8347077370846471,
+            "brier_score": 0.14340449341108102
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "DM_present": {
+          "n": 90,
+          "positive": 61,
+          "negative": 29,
+          "metrics": {
+            "tn": 12,
+            "fp": 17,
+            "fn": 4,
+            "tp": 57,
+            "accuracy": 0.7666666666666667,
+            "recall": 0.9344262295081968,
+            "specificity": 0.41379310344827586,
+            "roc_auc": 0.7439231204070096,
+            "brier_score": 0.17524048553956767
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "DM_absent": {
+          "n": 213,
+          "positive": 116,
+          "negative": 97,
+          "metrics": {
+            "tn": 77,
+            "fp": 20,
+            "fn": 18,
+            "tp": 98,
+            "accuracy": 0.8215962441314554,
+            "recall": 0.8448275862068966,
+            "specificity": 0.7938144329896907,
+            "roc_auc": 0.9002843938855315,
+            "brier_score": 0.12811770177615622
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "HTN_present": {
+          "n": 179,
+          "positive": 118,
+          "negative": 61,
+          "metrics": {
+            "tn": 35,
+            "fp": 26,
+            "fn": 12,
+            "tp": 106,
+            "accuracy": 0.7877094972067039,
+            "recall": 0.8983050847457628,
+            "specificity": 0.5737704918032787,
+            "roc_auc": 0.823978883023062,
+            "brier_score": 0.15494405963568061
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "HTN_absent": {
+          "n": 124,
+          "positive": 59,
+          "negative": 65,
+          "metrics": {
+            "tn": 54,
+            "fp": 11,
+            "fn": 10,
+            "tp": 49,
+            "accuracy": 0.8306451612903226,
+            "recall": 0.8305084745762712,
+            "specificity": 0.8307692307692308,
+            "roc_auc": 0.908735332464146,
+            "brier_score": 0.12359457662980274
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        }
+      },
+      "logistic_baseline": {
+        "method": "New fixed untuned logistic comparator OOF, 10 stratified folds seed42; training-only preprocessing/scaling; C1, max_iter2000, threshold0.5. Same historically reused cohort; no external validation.",
+        "metrics": {
+          "accuracy": 0.7557755775577558,
+          "precision": 0.7976878612716763,
+          "recall": 0.7796610169491526,
+          "sensitivity": 0.7796610169491526,
+          "specificity": 0.7222222222222222,
+          "f1": 0.7885714285714286,
+          "roc_auc": 0.8040086090933549,
+          "pr_auc": 0.8415884861536458,
+          "average_precision": 0.8422813278851179,
+          "mcc": 0.49978114801511137,
+          "cohen_kappa": 0.4995982860203535,
+          "balanced_accuracy": 0.7509416195856874,
+          "log_loss": 0.675939999646744,
+          "brier_score": 0.1882978623485403,
+          "ece": 0.1105964919854952
+        },
+        "confusion": {
+          "tn": 91,
+          "fp": 35,
+          "fn": 39,
+          "tp": 138,
+          "threshold": 0.5
+        }
+      }
+    },
+    "LCX": {
+      "promoted": false,
+      "selected_prediction_source": "Retained baseline OOF decisions",
+      "error_patterns": {
+        "groups": {
+          "false_negative": {
+            "n": 53,
+            "measurements": {
+              "Age": {
+                "available": 53,
+                "missing": 0,
+                "median": 57.0,
+                "q1": 51.0,
+                "q3": 66.0
+              },
+              "BP": {
+                "available": 53,
+                "missing": 0,
+                "median": 130.0,
+                "q1": 120.0,
+                "q3": 140.0
+              },
+              "FBS": {
+                "available": 53,
+                "missing": 0,
+                "median": 103.0,
+                "q1": 92.0,
+                "q3": 130.0
+              },
+              "CR": {
+                "available": 53,
+                "missing": 0,
+                "median": 1.0,
+                "q1": 0.8,
+                "q3": 1.1
+              },
+              "TG": {
+                "available": 53,
+                "missing": 0,
+                "median": 130.0,
+                "q1": 98.0,
+                "q3": 204.0
+              },
+              "LDL": {
+                "available": 53,
+                "missing": 0,
+                "median": 99.0,
+                "q1": 77.0,
+                "q3": 128.0
+              },
+              "HDL": {
+                "available": 53,
+                "missing": 0,
+                "median": 39.0,
+                "q1": 34.0,
+                "q3": 44.0
+              },
+              "EF-TTE": {
+                "available": 53,
+                "missing": 0,
+                "median": 50.0,
+                "q1": 45.0,
+                "q3": 55.0
+              }
+            }
+          },
+          "false_positive": {
+            "n": 34,
+            "measurements": {
+              "Age": {
+                "available": 34,
+                "missing": 0,
+                "median": 65.5,
+                "q1": 62.25,
+                "q3": 71.5
+              },
+              "BP": {
+                "available": 34,
+                "missing": 0,
+                "median": 130.0,
+                "q1": 130.0,
+                "q3": 147.5
+              },
+              "FBS": {
+                "available": 34,
+                "missing": 0,
+                "median": 105.0,
+                "q1": 90.0,
+                "q3": 155.5
+              },
+              "CR": {
+                "available": 34,
+                "missing": 0,
+                "median": 1.1,
+                "q1": 0.925,
+                "q3": 1.2
+              },
+              "TG": {
+                "available": 34,
+                "missing": 0,
+                "median": 147.5,
+                "q1": 115.25,
+                "q3": 185.5
+              },
+              "LDL": {
+                "available": 34,
+                "missing": 0,
+                "median": 95.5,
+                "q1": 72.75,
+                "q3": 112.75
+              },
+              "HDL": {
+                "available": 34,
+                "missing": 0,
+                "median": 35.0,
+                "q1": 30.25,
+                "q3": 40.0
+              },
+              "EF-TTE": {
+                "available": 34,
+                "missing": 0,
+                "median": 45.0,
+                "q1": 40.0,
+                "q3": 50.0
+              }
+            }
+          },
+          "true_positive": {
+            "n": 66,
+            "measurements": {
+              "Age": {
+                "available": 66,
+                "missing": 0,
+                "median": 65.5,
+                "q1": 61.25,
+                "q3": 71.75
+              },
+              "BP": {
+                "available": 66,
+                "missing": 0,
+                "median": 140.0,
+                "q1": 130.0,
+                "q3": 150.0
+              },
+              "FBS": {
+                "available": 66,
+                "missing": 0,
+                "median": 108.5,
+                "q1": 90.0,
+                "q3": 182.25
+              },
+              "CR": {
+                "available": 66,
+                "missing": 0,
+                "median": 1.2,
+                "q1": 1.0,
+                "q3": 1.4
+              },
+              "TG": {
+                "available": 66,
+                "missing": 0,
+                "median": 138.5,
+                "q1": 101.25,
+                "q3": 193.75
+              },
+              "LDL": {
+                "available": 66,
+                "missing": 0,
+                "median": 110.0,
+                "q1": 90.5,
+                "q3": 121.0
+              },
+              "HDL": {
+                "available": 66,
+                "missing": 0,
+                "median": 40.0,
+                "q1": 36.0,
+                "q3": 46.0
+              },
+              "EF-TTE": {
+                "available": 66,
+                "missing": 0,
+                "median": 45.0,
+                "q1": 40.0,
+                "q3": 50.0
+              }
+            }
+          },
+          "true_negative": {
+            "n": 150,
+            "measurements": {
+              "Age": {
+                "available": 150,
+                "missing": 0,
+                "median": 53.0,
+                "q1": 49.0,
+                "q3": 60.0
+              },
+              "BP": {
+                "available": 150,
+                "missing": 0,
+                "median": 120.0,
+                "q1": 110.0,
+                "q3": 135.0
+              },
+              "FBS": {
+                "available": 150,
+                "missing": 0,
+                "median": 94.0,
+                "q1": 86.0,
+                "q3": 113.0
+              },
+              "CR": {
+                "available": 150,
+                "missing": 0,
+                "median": 1.0,
+                "q1": 0.9,
+                "q3": 1.1
+              },
+              "TG": {
+                "available": 150,
+                "missing": 0,
+                "median": 107.0,
+                "q1": 85.0,
+                "q3": 158.5
+              },
+              "LDL": {
+                "available": 150,
+                "missing": 0,
+                "median": 98.5,
+                "q1": 78.25,
+                "q3": 122.0
+              },
+              "HDL": {
+                "available": 150,
+                "missing": 0,
+                "median": 40.0,
+                "q1": 33.0,
+                "q3": 47.0
+              },
+              "EF-TTE": {
+                "available": 150,
+                "missing": 0,
+                "median": 50.0,
+                "q1": 45.0,
+                "q3": 55.0
+              }
+            }
+          }
+        },
+        "limitations": "Exploratory post-development comparisons; not causal effects or independent validation. Quartiles suppressed when fewer than 10 measurements are available. Counts are descriptive; no patient rows or measurement ranges are exported."
+      },
+      "paired_baseline_comparison": {
+        "newly_correct": 0,
+        "newly_wrong": 0,
+        "net_correct_change": 0,
+        "accuracy_difference": 0.0,
+        "fold_accuracy_differences": [
+          {
+            "fold": 1,
+            "n": 31,
+            "difference": 0.0
+          },
+          {
+            "fold": 2,
+            "n": 31,
+            "difference": 0.0
+          },
+          {
+            "fold": 3,
+            "n": 31,
+            "difference": 0.0
+          },
+          {
+            "fold": 4,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 5,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 6,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 7,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 8,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 9,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 10,
+            "n": 30,
+            "difference": 0.0
+          }
+        ],
+        "uncertainty_note": "Fold differences are descriptive. Overlapping training sets, post hoc release selection and earlier cohort reuse prevent treating folds/rows as independent untouched experiments. No significance claim or inferential confidence interval."
+      },
+      "feature_availability": {
+        "missing_recorded_values": 0,
+        "note": "Recorded workbook complete; application defaulted inputs need separate prospective evaluation"
+      },
+      "majority_baseline": {
+        "prediction": 0,
+        "n": 303,
+        "correct": 184,
+        "accuracy": 0.6072607260726073
+      },
+      "subgroups": {
+        "all": {
+          "n": 303,
+          "positive": 119,
+          "negative": 184,
+          "metrics": {
+            "tn": 150,
+            "fp": 34,
+            "fn": 53,
+            "tp": 66,
+            "accuracy": 0.7128712871287128,
+            "recall": 0.5546218487394958,
+            "specificity": 0.8152173913043478,
+            "roc_auc": 0.7606868834490317,
+            "brier_score": 0.19425020148607225
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "sex_female": {
+          "n": 127,
+          "positive": 42,
+          "negative": 85,
+          "metrics": {
+            "tn": 72,
+            "fp": 13,
+            "fn": 26,
+            "tp": 16,
+            "accuracy": 0.6929133858267716,
+            "recall": 0.38095238095238093,
+            "specificity": 0.8470588235294118,
+            "roc_auc": 0.7002801120448179,
+            "brier_score": 0.2001118826134977
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "sex_male": {
+          "n": 176,
+          "positive": 77,
+          "negative": 99,
+          "metrics": {
+            "tn": 78,
+            "fp": 21,
+            "fn": 27,
+            "tp": 50,
+            "accuracy": 0.7272727272727273,
+            "recall": 0.6493506493506493,
+            "specificity": 0.7878787878787878,
+            "roc_auc": 0.7890594254230617,
+            "brier_score": 0.19002046567253233
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "age_below_55": {
+          "n": 108,
+          "positive": 27,
+          "negative": 81,
+          "metrics": {
+            "tn": 79,
+            "fp": 2,
+            "fn": 21,
+            "tp": 6,
+            "accuracy": 0.7870370370370371,
+            "recall": 0.2222222222222222,
+            "specificity": 0.9753086419753086,
+            "roc_auc": 0.737997256515775,
+            "brier_score": 0.1607032607691707
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "age_55_or_more": {
+          "n": 195,
+          "positive": 92,
+          "negative": 103,
+          "metrics": {
+            "tn": 71,
+            "fp": 32,
+            "fn": 32,
+            "tp": 60,
+            "accuracy": 0.6717948717948717,
+            "recall": 0.6521739130434783,
+            "specificity": 0.6893203883495146,
+            "roc_auc": 0.720873786407767,
+            "brier_score": 0.2128300455754331
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "DM_present": {
+          "n": 90,
+          "positive": 46,
+          "negative": 44,
+          "metrics": {
+            "tn": 29,
+            "fp": 15,
+            "fn": 19,
+            "tp": 27,
+            "accuracy": 0.6222222222222222,
+            "recall": 0.5869565217391305,
+            "specificity": 0.6590909090909091,
+            "roc_auc": 0.6907114624505929,
+            "brier_score": 0.22385706898041202
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "DM_absent": {
+          "n": 213,
+          "positive": 73,
+          "negative": 140,
+          "metrics": {
+            "tn": 121,
+            "fp": 19,
+            "fn": 34,
+            "tp": 39,
+            "accuracy": 0.7511737089201878,
+            "recall": 0.5342465753424658,
+            "specificity": 0.8642857142857143,
+            "roc_auc": 0.7723091976516633,
+            "brier_score": 0.1817402574743794
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "HTN_present": {
+          "n": 179,
+          "positive": 83,
+          "negative": 96,
+          "metrics": {
+            "tn": 70,
+            "fp": 26,
+            "fn": 29,
+            "tp": 54,
+            "accuracy": 0.6927374301675978,
+            "recall": 0.6506024096385542,
+            "specificity": 0.7291666666666666,
+            "roc_auc": 0.7325552208835341,
+            "brier_score": 0.21015414482526698
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "HTN_absent": {
+          "n": 124,
+          "positive": 36,
+          "negative": 88,
+          "metrics": {
+            "tn": 80,
+            "fp": 8,
+            "fn": 24,
+            "tp": 12,
+            "accuracy": 0.7419354838709677,
+            "recall": 0.3333333333333333,
+            "specificity": 0.9090909090909091,
+            "roc_auc": 0.768939393939394,
+            "brier_score": 0.1712920897302992
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        }
+      },
+      "logistic_baseline": {
+        "method": "New fixed untuned logistic comparator OOF, 10 stratified folds seed42; training-only preprocessing/scaling; C1, max_iter2000, threshold0.5. Same historically reused cohort; no external validation.",
+        "metrics": {
+          "accuracy": 0.6633663366336634,
+          "precision": 0.5794392523364486,
+          "recall": 0.5210084033613446,
+          "sensitivity": 0.5210084033613446,
+          "specificity": 0.7554347826086957,
+          "f1": 0.5486725663716814,
+          "roc_auc": 0.6665144318597005,
+          "pr_auc": 0.534660203876002,
+          "average_precision": 0.5395324552994489,
+          "mcc": 0.28246741609212195,
+          "cohen_kappa": 0.2814563377662047,
+          "balanced_accuracy": 0.6382215929850201,
+          "log_loss": 0.805956843697696,
+          "brier_score": 0.2541621102122844,
+          "ece": 0.18097879876704062
+        },
+        "confusion": {
+          "tn": 139,
+          "fp": 45,
+          "fn": 57,
+          "tp": 62,
+          "threshold": 0.5
+        }
+      }
+    },
+    "RCA": {
+      "promoted": true,
+      "selected_prediction_source": "Nested selection OOF fold-specific decisions",
+      "error_patterns": {
+        "groups": {
+          "false_negative": {
+            "n": 51,
+            "measurements": {
+              "Age": {
+                "available": 51,
+                "missing": 0,
+                "median": 60.0,
+                "q1": 53.0,
+                "q3": 68.5
+              },
+              "BP": {
+                "available": 51,
+                "missing": 0,
+                "median": 130.0,
+                "q1": 120.0,
+                "q3": 130.0
+              },
+              "FBS": {
+                "available": 51,
+                "missing": 0,
+                "median": 96.0,
+                "q1": 89.0,
+                "q3": 106.0
+              },
+              "CR": {
+                "available": 51,
+                "missing": 0,
+                "median": 1.0,
+                "q1": 0.9,
+                "q3": 1.2
+              },
+              "TG": {
+                "available": 51,
+                "missing": 0,
+                "median": 142.0,
+                "q1": 99.5,
+                "q3": 190.0
+              },
+              "LDL": {
+                "available": 51,
+                "missing": 0,
+                "median": 100.0,
+                "q1": 79.5,
+                "q3": 120.5
+              },
+              "HDL": {
+                "available": 51,
+                "missing": 0,
+                "median": 39.0,
+                "q1": 35.5,
+                "q3": 45.5
+              },
+              "EF-TTE": {
+                "available": 51,
+                "missing": 0,
+                "median": 50.0,
+                "q1": 45.0,
+                "q3": 55.0
+              }
+            }
+          },
+          "false_positive": {
+            "n": 45,
+            "measurements": {
+              "Age": {
+                "available": 45,
+                "missing": 0,
+                "median": 65.0,
+                "q1": 57.0,
+                "q3": 70.0
+              },
+              "BP": {
+                "available": 45,
+                "missing": 0,
+                "median": 130.0,
+                "q1": 120.0,
+                "q3": 140.0
+              },
+              "FBS": {
+                "available": 45,
+                "missing": 0,
+                "median": 108.0,
+                "q1": 90.0,
+                "q3": 160.0
+              },
+              "CR": {
+                "available": 45,
+                "missing": 0,
+                "median": 1.0,
+                "q1": 0.8,
+                "q3": 1.2
+              },
+              "TG": {
+                "available": 45,
+                "missing": 0,
+                "median": 140.0,
+                "q1": 92.0,
+                "q3": 190.0
+              },
+              "LDL": {
+                "available": 45,
+                "missing": 0,
+                "median": 100.0,
+                "q1": 71.0,
+                "q3": 121.0
+              },
+              "HDL": {
+                "available": 45,
+                "missing": 0,
+                "median": 39.0,
+                "q1": 34.0,
+                "q3": 44.0
+              },
+              "EF-TTE": {
+                "available": 45,
+                "missing": 0,
+                "median": 45.0,
+                "q1": 40.0,
+                "q3": 50.0
+              }
+            }
+          },
+          "true_positive": {
+            "n": 63,
+            "measurements": {
+              "Age": {
+                "available": 63,
+                "missing": 0,
+                "median": 63.0,
+                "q1": 59.0,
+                "q3": 69.0
+              },
+              "BP": {
+                "available": 63,
+                "missing": 0,
+                "median": 130.0,
+                "q1": 120.0,
+                "q3": 145.0
+              },
+              "FBS": {
+                "available": 63,
+                "missing": 0,
+                "median": 130.0,
+                "q1": 95.5,
+                "q3": 192.5
+              },
+              "CR": {
+                "available": 63,
+                "missing": 0,
+                "median": 1.1,
+                "q1": 0.95,
+                "q3": 1.3
+              },
+              "TG": {
+                "available": 63,
+                "missing": 0,
+                "median": 130.0,
+                "q1": 95.0,
+                "q3": 190.0
+              },
+              "LDL": {
+                "available": 63,
+                "missing": 0,
+                "median": 106.0,
+                "q1": 79.0,
+                "q3": 124.0
+              },
+              "HDL": {
+                "available": 63,
+                "missing": 0,
+                "median": 39.0,
+                "q1": 34.0,
+                "q3": 45.5
+              },
+              "EF-TTE": {
+                "available": 63,
+                "missing": 0,
+                "median": 45.0,
+                "q1": 40.0,
+                "q3": 50.0
+              }
+            }
+          },
+          "true_negative": {
+            "n": 144,
+            "measurements": {
+              "Age": {
+                "available": 144,
+                "missing": 0,
+                "median": 54.0,
+                "q1": 48.0,
+                "q3": 61.25
+              },
+              "BP": {
+                "available": 144,
+                "missing": 0,
+                "median": 125.0,
+                "q1": 110.0,
+                "q3": 140.0
+              },
+              "FBS": {
+                "available": 144,
+                "missing": 0,
+                "median": 94.0,
+                "q1": 85.0,
+                "q3": 109.0
+              },
+              "CR": {
+                "available": 144,
+                "missing": 0,
+                "median": 1.0,
+                "q1": 0.9,
+                "q3": 1.2
+              },
+              "TG": {
+                "available": 144,
+                "missing": 0,
+                "median": 112.0,
+                "q1": 90.0,
+                "q3": 160.5
+              },
+              "LDL": {
+                "available": 144,
+                "missing": 0,
+                "median": 99.0,
+                "q1": 83.0,
+                "q3": 122.0
+              },
+              "HDL": {
+                "available": 144,
+                "missing": 0,
+                "median": 40.0,
+                "q1": 32.0,
+                "q3": 45.25
+              },
+              "EF-TTE": {
+                "available": 144,
+                "missing": 0,
+                "median": 50.0,
+                "q1": 45.0,
+                "q3": 55.0
+              }
+            }
+          }
+        },
+        "limitations": "Exploratory post-development comparisons; not causal effects or independent validation. Quartiles suppressed when fewer than 10 measurements are available. Counts are descriptive; no patient rows or measurement ranges are exported."
+      },
+      "paired_baseline_comparison": {
+        "newly_correct": 13,
+        "newly_wrong": 11,
+        "net_correct_change": 2,
+        "accuracy_difference": 0.0066006600660066805,
+        "fold_accuracy_differences": [
+          {
+            "fold": 1,
+            "n": 31,
+            "difference": 0.032258064516129004
+          },
+          {
+            "fold": 2,
+            "n": 31,
+            "difference": 0.032258064516129004
+          },
+          {
+            "fold": 3,
+            "n": 31,
+            "difference": 0.0
+          },
+          {
+            "fold": 4,
+            "n": 30,
+            "difference": 0.03333333333333344
+          },
+          {
+            "fold": 5,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 6,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 7,
+            "n": 30,
+            "difference": 0.033333333333333326
+          },
+          {
+            "fold": 8,
+            "n": 30,
+            "difference": 0.0
+          },
+          {
+            "fold": 9,
+            "n": 30,
+            "difference": -0.06666666666666665
+          },
+          {
+            "fold": 10,
+            "n": 30,
+            "difference": 0.0
+          }
+        ],
+        "uncertainty_note": "Fold differences are descriptive. Overlapping training sets, post hoc release selection and earlier cohort reuse prevent treating folds/rows as independent untouched experiments. No significance claim or inferential confidence interval."
+      },
+      "feature_availability": {
+        "missing_recorded_values": 0,
+        "note": "Recorded workbook complete; application defaulted inputs need separate prospective evaluation"
+      },
+      "majority_baseline": {
+        "prediction": 0,
+        "n": 303,
+        "correct": 189,
+        "accuracy": 0.6237623762376238
+      },
+      "subgroups": {
+        "all": {
+          "n": 303,
+          "positive": 114,
+          "negative": 189,
+          "metrics": {
+            "tn": 144,
+            "fp": 45,
+            "fn": 51,
+            "tp": 63,
+            "accuracy": 0.6831683168316832,
+            "recall": 0.5526315789473685,
+            "specificity": 0.7619047619047619,
+            "roc_auc": 0.7438039543302702,
+            "brier_score": 0.19721581057181725
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "sex_female": {
+          "n": 127,
+          "positive": 39,
+          "negative": 88,
+          "metrics": {
+            "tn": 70,
+            "fp": 18,
+            "fn": 16,
+            "tp": 23,
+            "accuracy": 0.7322834645669292,
+            "recall": 0.5897435897435898,
+            "specificity": 0.7954545454545454,
+            "roc_auc": 0.787004662004662,
+            "brier_score": 0.1687021404892354
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "sex_male": {
+          "n": 176,
+          "positive": 75,
+          "negative": 101,
+          "metrics": {
+            "tn": 74,
+            "fp": 27,
+            "fn": 35,
+            "tp": 40,
+            "accuracy": 0.6477272727272727,
+            "recall": 0.5333333333333333,
+            "specificity": 0.7326732673267327,
+            "roc_auc": 0.706006600660066,
+            "brier_score": 0.21779101568822573
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "age_below_55": {
+          "n": 108,
+          "positive": 26,
+          "negative": 82,
+          "metrics": {
+            "tn": 76,
+            "fp": 6,
+            "fn": 14,
+            "tp": 12,
+            "accuracy": 0.8148148148148148,
+            "recall": 0.46153846153846156,
+            "specificity": 0.926829268292683,
+            "roc_auc": 0.8489681050656661,
+            "brier_score": 0.13738993638566988
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "age_55_or_more": {
+          "n": 195,
+          "positive": 88,
+          "negative": 107,
+          "metrics": {
+            "tn": 68,
+            "fp": 39,
+            "fn": 37,
+            "tp": 51,
+            "accuracy": 0.6102564102564103,
+            "recall": 0.5795454545454546,
+            "specificity": 0.6355140186915887,
+            "roc_auc": 0.6623831775700936,
+            "brier_score": 0.2303501408902989
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "DM_present": {
+          "n": 90,
+          "positive": 52,
+          "negative": 38,
+          "metrics": {
+            "tn": 20,
+            "fp": 18,
+            "fn": 12,
+            "tp": 40,
+            "accuracy": 0.6666666666666666,
+            "recall": 0.7692307692307693,
+            "specificity": 0.5263157894736842,
+            "roc_auc": 0.6877530364372471,
+            "brier_score": 0.22399460421732453
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "DM_absent": {
+          "n": 213,
+          "positive": 62,
+          "negative": 151,
+          "metrics": {
+            "tn": 124,
+            "fp": 27,
+            "fn": 39,
+            "tp": 23,
+            "accuracy": 0.6901408450704225,
+            "recall": 0.3709677419354839,
+            "specificity": 0.8211920529801324,
+            "roc_auc": 0.7151249732963042,
+            "brier_score": 0.18590082734132127
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "HTN_present": {
+          "n": 179,
+          "positive": 78,
+          "negative": 101,
+          "metrics": {
+            "tn": 68,
+            "fp": 33,
+            "fn": 29,
+            "tp": 49,
+            "accuracy": 0.6536312849162011,
+            "recall": 0.6282051282051282,
+            "specificity": 0.6732673267326733,
+            "roc_auc": 0.7110941863417112,
+            "brier_score": 0.21408819994664194
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        },
+        "HTN_absent": {
+          "n": 124,
+          "positive": 36,
+          "negative": 88,
+          "metrics": {
+            "tn": 76,
+            "fp": 12,
+            "fn": 22,
+            "tp": 14,
+            "accuracy": 0.7258064516129032,
+            "recall": 0.3888888888888889,
+            "specificity": 0.8636363636363636,
+            "roc_auc": 0.7746212121212122,
+            "brier_score": 0.1728597001033203
+          },
+          "warning": "Internal descriptive subgroup; not external fairness validation"
+        }
+      },
+      "logistic_baseline": {
+        "method": "New fixed untuned logistic comparator OOF, 10 stratified folds seed42; training-only preprocessing/scaling; C1, max_iter2000, threshold0.5. Same historically reused cohort; no external validation.",
+        "metrics": {
+          "accuracy": 0.636963696369637,
+          "precision": 0.5208333333333334,
+          "recall": 0.43859649122807015,
+          "sensitivity": 0.43859649122807015,
+          "specificity": 0.7566137566137566,
+          "f1": 0.47619047619047616,
+          "roc_auc": 0.6813793743618305,
+          "pr_auc": 0.5392336519769338,
+          "average_precision": 0.5460295067479661,
+          "mcc": 0.20326619209343305,
+          "cohen_kappa": 0.20152364524938904,
+          "balanced_accuracy": 0.5976051239209134,
+          "log_loss": 0.7794750888277632,
+          "brier_score": 0.24650961729946366,
+          "ece": 0.1741106600753408
+        },
+        "confusion": {
+          "tn": 143,
+          "fp": 46,
+          "fn": 64,
+          "tp": 50,
+          "threshold": 0.5
+        }
+      }
+    }
+  },
+  "baseline_source_hashes": {
+    "scripts/analyze_release_errors.py": "441bbd320c78325468f3774b57a424b64cf7338d111807501d4e416e1979301c",
+    "backend/model_quality/evaluation.py": "9982d31bbf88a1a73a108ba2b27fac3ff4f0e76324eface453df948abf8cab46",
+    "backend/cardio/service/feature_service.py": "833d51159ff785fab539803f3a2d31c4197eacb0e59654af56a52707c8366c44",
+    "backend/model_quality/metrics.py": "19b14655b92a5765ef906c6671c5789c1fef7e74789c3e13fa877aed86a73cc0"
+  }
+}

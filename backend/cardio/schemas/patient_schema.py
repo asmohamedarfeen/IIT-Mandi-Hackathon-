@@ -2,7 +2,7 @@
 Pydantic schemas for patient clinical data input and validation.
 """
 
-from typing import Optional, Dict, Any, Union
+from typing import Optional, Dict, Any, Union, Literal
 from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
 from backend.cardio.constants import CATEGORY_CODES, encode_category
 
@@ -14,6 +14,10 @@ class PatientInputSchema(BaseModel):
     Accepts both standard text codes ('Y'/'N', 'Male'/'Female') and numerical encodings (1/0).
     """
     patient_id: Optional[str] = Field("PATIENT-001", description="De-identified patient ID")
+
+    assessment_mode: Literal["demo", "reviewed"] = "demo"
+    confirmed_measurements: list[str] = Field(default_factory=list)
+    input_sources: Dict[str, Literal["supplied", "defaulted", "calculated", "unknown"]] = Field(default_factory=dict)
 
     # Demographics & Body Metrics
     Age: int = Field(55, ge=18, le=120, description="Age in years")
@@ -94,8 +98,40 @@ class PatientInputSchema(BaseModel):
         return encode_category(value, name) if name in CATEGORY_CODES else value
 
     @model_validator(mode="after")
+    def validate_reviewed_measurements(self):
+        metadata = {"patient_id", "assessment_mode", "confirmed_measurements", "input_sources"}
+        aliases = {name: field.alias or name for name, field in type(self).model_fields.items() if name not in metadata}
+        allowed = set(aliases.values())
+        unknown = (set(self.confirmed_measurements) | set(self.input_sources)) - allowed
+        if unknown:
+            raise ValueError("Unknown measurement: " + ", ".join(sorted(unknown)))
+        supplied = {aliases[name] for name in self.model_fields_set if name in aliases}
+        if self.assessment_mode == "reviewed":
+            required = allowed - {"BMI", "Exertional CP"}
+            if self.BMI is not None and self.input_sources.get("BMI", "supplied") != "calculated":
+                required.add("BMI")
+            missing = sorted(key for key in required if key not in supplied or key not in self.confirmed_measurements or self.input_sources.get(key, "supplied") != "supplied")
+            if missing:
+                raise ValueError("Reviewed case requires explicitly supplied and confirmed measurements: " + ", ".join(missing))
+        return self
+
+    def input_provenance(self) -> Dict[str, Any]:
+        metadata = {"patient_id", "assessment_mode", "confirmed_measurements", "input_sources"}
+        measurements = {}
+        for name, field in type(self).model_fields.items():
+            if name in metadata:
+                continue
+            key = field.alias or name
+            source = self.input_sources.get(key, "supplied" if name in self.model_fields_set else "defaulted")
+            if key == "BMI" and (name not in self.model_fields_set or "BMI" not in self.input_sources and self.BMI is None):
+                source = "calculated"
+            measurements[key] = {"source": source, "confirmed": key in self.confirmed_measurements, "value": getattr(self, name), "modeled": key != "Exertional CP"}
+        return {"assessment_mode": self.assessment_mode, "measurements": measurements}
+
+    @model_validator(mode="after")
     def compute_missing_bmi(self):
-        if self.BMI is None:
+        if self.BMI is None or self.input_sources.get("BMI") == "calculated":
+            self.input_sources["BMI"] = "calculated"
             self.BMI = self.Weight / (self.Length / 100.0) ** 2
         return self
 

@@ -4,6 +4,9 @@
 
 export interface PatientData {
   patient_id?: string;
+  assessment_mode?: "demo" | "reviewed";
+  confirmed_measurements?: string[];
+  input_sources?: Record<string, "supplied" | "defaulted" | "calculated" | "unknown">;
   Age: number;
   Sex: string | number;
   Weight: number;
@@ -68,6 +71,8 @@ export interface VesselRiskInfo {
   risk_level: string;
   color_hex: string;
   anatomical_description: string;
+  predicted_status?: "CAD" | "Stenotic" | "Normal" | null;
+  decision_threshold?: number;
 }
 
 export interface SHAPFeatureImpact {
@@ -103,6 +108,16 @@ export interface PredictionResponse {
     RCA: SHAPFeatureImpact[];
   };
   disclaimer: string;
+  prediction_explanations?: Partial<Record<"CAD" | "LAD" | "LCX" | "RCA", {
+    method: string;
+    reference_type: string;
+    reference_inputs?: Record<string, unknown>;
+    baseline_probability: number;
+    predicted_probability: number;
+    reconstruction_error: number;
+    groups: { id: string; label: string; contribution: number }[];
+    limitations: string;
+  }>>;
   evidence?: PredictionEvidence;
 }
 
@@ -113,6 +128,8 @@ export interface PredictionEvidence {
   assessment_id: string;
   generated_at: string;
   clinical_inputs: Record<string, unknown>;
+  assessment_mode?: "demo" | "reviewed";
+  input_provenance?: { assessment_mode: "demo" | "reviewed"; measurements: Record<string, { source: string; confirmed: boolean; value: unknown; modeled: boolean }> };
   prediction_model: string;
   explanation_model: string;
   confidence_interval: number[] | null;
@@ -150,6 +167,12 @@ export interface BenchmarkData {
     string,
     Array<{ feature: string; importance: number; mean_val: number }>
   >;
+  evaluation?: {
+    run_id: string;
+    method: string;
+    record_count: number;
+    limitations: string[];
+  };
 }
 
 export interface ThreeDStructureData {

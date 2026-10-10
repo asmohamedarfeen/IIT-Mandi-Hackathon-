@@ -2301,3 +2301,55 @@ i {
     font-size: 10px;
   }
 }
+
+/* Mode and confirmation preserve the native, keyboard-accessible form controls. */
+.patient-form .assessment-mode {
+  margin: 0 30px 24px;
+  border: 1px solid #d7d9cf;
+  padding: 14px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.patient-form .assessment-mode input[type="radio"],
+.patient-form .review-attestation input[type="checkbox"] {
+  appearance: auto;
+  width: 16px;
+  min-width: 16px;
+  height: 16px;
+  min-height: 16px;
+  padding: 0;
+  margin: 0 6px 0 0;
+  vertical-align: middle;
+}
+.patient-form .review-attestation {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 14px 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.patient-form .review-attestation input { margin-top: 3px; }
+.patient-form [aria-invalid="true"] { border-color: #9f352b; }
+.patient-form .field [role="alert"] { color: #9f352b; font-size: 11px; line-height: 1.5; }
+@media (max-width: 600px) {
+  .patient-form .assessment-mode { margin-inline: 20px; }
+}
+
+.vessel-fallback { width: 100%; max-width: 460px; border-collapse: collapse; color: #e7efec; font-size: 12px; }
+.vessel-fallback caption { padding-bottom: 10px; }
+.vessel-fallback th, .vessel-fallback td { padding: 8px; text-align: left; border-bottom: 1px solid #53645b; }
+.vessel-fallback button { color: #e7efec; border: 1px solid #85978b; border-radius: 4px; padding: 6px 10px; }
+.viewer-state { overflow: auto; gap: 10px; }
+
+.measurement-grid dd small { display: block; margin-top: 3px; color: #59665d; font-size: 11px; }
+.anatomical-stage.has-vessel-detail .viewer-state { bottom: 490px; }
+@media (max-width: 520px) {
+  .anatomical-stage.has-vessel-detail .viewer-state { bottom: 520px; }
+}
+
+.deployed-explanation { grid-column: 1 / -1; padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1px solid #d6ddcf; }
+.deployed-explanation h3 { font-size: 18px; margin-bottom: 12px; }
+.deployed-explanation p { font-size: 12px; line-height: 1.6; margin-block: 8px; }
+.deployed-explanation dl > div { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding-block: 8px; border-bottom: 1px solid #d6ddcf; font-size: 12px; }
+.deployed-explanation dd { font-variant-numeric: tabular-nums; }

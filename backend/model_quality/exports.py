@@ -14,10 +14,11 @@ from pypdf import PdfReader, PdfWriter
 SECTIONS = {'results', 'metrics', 'confusion-matrices', 'calibration', 'roc', 'pr', 'shap', 'feature-stability', 'thresholds', 'histogram', 'class-distribution', 'reproducibility'}
 
 
-def selection(summary, section, target=None, model=None, confusion=None):
-    result = {'schema_version': 1, 'run_id': summary['run_id'], 'generated_at': summary['generated_at'], 'status': summary['status'], 'stale': summary['stale'], 'section': section, 'selection': {'target': target, 'model': model}, 'provenance': summary['provenance'], 'limitations': summary['limitations']}
+def selection(summary, section, target=None, model=None, confusion=None, models=None):
+    selected = set(models) if models is not None else None
+    result = {'schema_version': 1, 'run_id': summary['run_id'], 'generated_at': summary['generated_at'], 'status': summary['status'], 'stale': summary['stale'], 'section': section, 'selection': {'target': target, 'model': model, 'models': sorted(selected) if selected is not None else None}, 'provenance': summary['provenance'], 'limitations': summary['limitations']}
     result['data_quality'] = summary['data_quality']
-    result['models'] = [entry for entry in summary['models'] if model is None or entry['id'] == model]
+    result['models'] = [entry for entry in summary['models'] if (model is None or entry['id'] == model) and (selected is None or entry['id'] in selected)]
     result['supplied_benchmarks'] = summary['supplied_benchmarks']
     if section == 'reproducibility':
         return result
@@ -37,7 +38,7 @@ def selection(summary, section, target=None, model=None, confusion=None):
         if section not in ('shap', 'feature-stability', 'class-distribution'):
             item['models'] = {}
             for identifier, evidence in value['models'].items():
-                if model and identifier != model:
+                if model and identifier != model or selected is not None and identifier not in selected:
                     continue
                 if section == 'results':
                     item['models'][identifier] = evidence

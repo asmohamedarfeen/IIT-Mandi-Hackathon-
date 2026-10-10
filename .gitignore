@@ -23,7 +23,9 @@ db/*.db
 
 # Private row-level evaluation audit; public aggregate summaries may be versioned.
 artifacts/model_quality/runs/*/oof.json
+artifacts/model_releases/*/oof.json
 
 # Generated output & temporary files
 output/
 tmp/
+test-results/

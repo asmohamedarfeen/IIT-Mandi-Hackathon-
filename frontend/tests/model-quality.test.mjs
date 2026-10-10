@@ -26,6 +26,13 @@ test("Lab renders actual aggregate data, production configuration, and provenanc
   assert.match(html, /SHAP stability/);
 });
 
+test("stale notice identifies provenance and pinned-library drift", async () => {
+  const { ModelQualityLab } = await compiler.ssrLoadModule("/src/model-quality/ModelQualityLab.tsx");
+  const html = renderToStaticMarkup(React.createElement(ModelQualityLab,{initialData:{...fixture,status:"stale",stale:true}}));
+  assert.match(html,/pinned ML library versions/);
+  assert.match(html,/project environment/);
+});
+
 test("threshold slider selects exact saved counts and target switching updates class balance", async () => {
   const { ModelQualityLab } = await compiler.ssrLoadModule("/src/model-quality/ModelQualityLab.tsx");
   let renderer;
@@ -66,6 +73,13 @@ test("SVG curves retain API coordinates, text equivalents, and unique accessible
   assert.equal(new Set(ids).size,ids.length);
 });
 
+test("ROC chart marks the exact confusion threshold operating point", async () => {
+  const { Charts } = await compiler.ssrLoadModule("/src/model-quality/Charts.tsx");
+  const html = renderToStaticMarkup(React.createElement(Charts,{kind:"roc",series:[{name:"Voting",points:[{x:0,y:0},{x:1,y:1}]}],operatingPoint:{x:.25,y:2/3,threshold:.5}}));
+  assert.match(html,/Selected threshold 0\.50: false positive rate 0\.250, sensitivity 0\.667/);
+  assert.match(html,/class="mq-operating-point"/);
+});
+
 test("API downloads real report artifacts with the displayed selection and refuses HTML", async t => {
   const { apiService } = await compiler.ssrLoadModule("/src/services/api.ts");
   assert.equal(typeof apiService.downloadModelQualityReport,"function");
@@ -88,6 +102,13 @@ test("API downloads real report artifacts with the displayed selection and refus
   await apiService.downloadModelQualityReport({format:"json",section:"roc",target:"LAD",model:"Voting",threshold:.4,expected_run_id:"heldout-run"});
   assert.deepEqual(events,["append","click","remove"]);
   assert.equal(link.download,"model-quality-heldout-run-roc-LAD-Voting.json");
+  t.mock.method(globalThis,"fetch",async url=>{
+    const query=new URL(url,"http://localhost").searchParams;
+    assert.equal(query.get("models"),"Voting,CalibratedVoting");
+    assert.equal(query.get("model"),null);
+    return new Response('{"run_id":"heldout-run"}',{headers:{"content-type":"application/json"}});
+  });
+  await apiService.downloadModelQualityReport({format:"json",section:"roc",models:["Voting","CalibratedVoting"],expected_run_id:"heldout-run"});
   t.mock.method(globalThis,"fetch",async()=>new Response("<html>offline</html>",{headers:{"content-type":"text/html"}}));
   await assert.rejects(apiService.downloadModelQualityReport({format:"json",section:"roc"}),/unavailable|Invalid/);
   t.mock.method(globalThis,"fetch",async()=>new Response('{"detail":"Saved run changed"}',{status:409,headers:{"content-type":"application/json"}}));
@@ -213,17 +234,33 @@ test("threshold, histogram, class balance and reproducibility downloads request 
   });
   let renderer;
   act(()=>{renderer=TestRenderer.create(React.createElement(ModelQualityLab,{initialData:fixture}));});
-  for(const id of ["mq-thresholds","mq-histogram","mq-class-balance","mq-provenance"]){
+  for(const id of ["mq-thresholds","mq-histogram","mq-class-balance","mq-provenance","mq-roc","mq-pr","mq-calibration"]){
     const section=renderer.root.findByProps({id});
     const button=section.findAllByType("button").find(button=>text(button)==="Download");
     assert.ok(button,`${id} exposes a report download`);
     await act(async()=>{button.props.onClick();await Promise.resolve();});
   }
-  assert.deepEqual(requests.map(request=>request.section),["thresholds","histogram","class-distribution","reproducibility"]);
+  assert.deepEqual(requests.map(request=>request.section),["thresholds","histogram","class-distribution","reproducibility","roc","pr","calibration"]);
   assert.equal(requests[0].model,"CalibratedVoting");
   assert.equal(requests[0].target,"CAD");
   assert.equal(requests[2].model,undefined);
   assert.equal(requests[3].target,undefined);
+  assert.deepEqual(requests.slice(-3).map(request=>request.models),["CalibratedVoting,Voting","CalibratedVoting,Voting","Voting,CalibratedVoting"]);
   assert.ok(requests.every(request=>request.expected_run_id==="heldout-run"));
   act(()=>renderer.unmount());
+});
+
+test("release Lab names RCA LightGBM and starts its saved 40 percent operating point", async () => {
+  const { ModelQualityLab } = await compiler.ssrLoadModule("/src/model-quality/ModelQualityLab.tsx");
+  const releaseTarget = {...target,production_configuration:{name:"Sigmoid-calibrated LightGBM-d3",decision_threshold:.4,calibration_method:"sigmoid",calibration_folds:3},models:{DeployedConfiguration:{...model,diagnostics:{...model.diagnostics,confusion_matrix:{...matrix,threshold:.4}}},UncalibratedProduction:model}};
+  const release = {...fixture,selected_model:"DeployedConfiguration",models:[{id:"DeployedConfiguration",name:"Deployed configuration",production_configuration:true,configuration_source:"saved",parameters:{}},{id:"UncalibratedProduction",name:"Uncalibrated deployed recipe",production_configuration:false,configuration_source:"saved",parameters:{}}],targets:{...fixture.targets,CAD:{...releaseTarget,production_configuration:{...releaseTarget.production_configuration,name:"Existing sigmoid-calibrated voting ensemble",decision_threshold:.5,calibration_folds:5}},RCA:releaseTarget}};
+  let renderer;
+  await act(async()=>{renderer=TestRenderer.create(React.createElement(ModelQualityLab,{initialData:release}));});
+  await act(async()=>{renderer.root.findByProps({id:"mq-target"}).props.onChange({target:{value:"RCA"}});});
+  assert.equal(renderer.root.findByProps({id:"mq-threshold"}).props.value,.4);
+  const content=text(renderer.toJSON());
+  assert.match(content,/Sigmoid-calibrated LightGBM-d3/);
+  assert.match(content,/sigmoid CV3/);
+  assert.match(content,/threshold 0.4/);
+  await act(async()=>renderer.unmount());
 });

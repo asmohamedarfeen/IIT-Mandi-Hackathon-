@@ -127,19 +127,29 @@ def confusion_matrix(target: Target = Target.CAD, model: str | None = None, thre
 
 
 @router.get('/report')
-def report(format: Format = Format.pdf, section: Section = Section.results, target: Target | None = None, model: str | None = None, threshold: float = Query(.5, ge=0, le=1, allow_inf_nan=False), expected_run_id: str | None = Query(None, pattern=r'^[a-f0-9]{8,64}$'), service=Depends(get_quality_service)):
+def report(format: Format = Format.pdf, section: Section = Section.results, target: Target | None = None, model: str | None = None, models: str | None = None, threshold: float = Query(.5, ge=0, le=1, allow_inf_nan=False), expected_run_id: str | None = Query(None, pattern=r'^[a-f0-9]{8,64}$'), service=Depends(get_quality_service)):
     data, audit = snapshot(service, with_audit=True)
     if expected_run_id is not None and expected_run_id != data['run_id']:
         raise HTTPException(409, 'Evaluation run changed. Refresh the quality evidence before downloading.')
+    selected_models = None
+    if models is not None:
+        if model is not None:
+            raise HTTPException(422, 'Choose one model or a model overlay list, not both.')
+        selected_models = models.split(',')
+        if not selected_models or len(set(selected_models)) != len(selected_models):
+            raise HTTPException(422, 'Model overlay selection must contain unique model identifiers.')
+        for candidate in selected_models:
+            checked_model(data, candidate)
     identifier = checked_model(data, model) if model else None
     if section == Section.confusion:
         target = target or Target.CAD
         identifier = checked_model(data, model)
     cm = service.confusion_from_snapshot(data, audit, target.value, identifier, threshold) if section == Section.confusion else None
-    payload = selection(data, section.value, target.value if target else None, identifier, cm)
+    payload = selection(data, section.value, target.value if target else None, identifier, cm, selected_models)
     payload['selection']['threshold'] = threshold if section == Section.confusion else None
     body = pdf_export(payload) if format == Format.pdf else csv_export(payload) if format == Format.csv else json.dumps(payload, allow_nan=False).encode()
     threshold_label = f'-threshold-{threshold}' if section == Section.confusion else ''
-    filename = f"model-quality-{data['run_id']}-{section.value}{'-' + target.value if target else ''}{'-' + identifier if identifier else ''}{threshold_label}.{format.value}"
+    model_list_label = '-models-' + '-'.join(selected_models) if selected_models is not None else ''
+    filename = f"model-quality-{data['run_id']}-{section.value}{'-' + target.value if target else ''}{'-' + identifier if identifier else ''}{model_list_label}{threshold_label}.{format.value}"
     media = {'pdf': 'application/pdf', 'csv': 'text/csv', 'json': 'application/json'}[format.value]
     return Response(body, media_type=media, headers={'Content-Disposition': f'attachment; filename="{filename}"'})

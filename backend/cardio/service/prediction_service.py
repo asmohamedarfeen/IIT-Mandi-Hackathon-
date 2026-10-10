@@ -201,9 +201,7 @@ class PredictionService:
     def _prepare_patient_feature_vector(self, patient_data: PatientInputSchema) -> Tuple[np.ndarray, pd.DataFrame]:
         """Convert Pydantic patient schema into clean engineered feature vector in saved bundle order."""
         # Convert schema to dict with alias support
-        raw_dict = patient_data.model_dump(by_alias=True)
-        if "patient_id" in raw_dict:
-            raw_dict.pop("patient_id")
+        raw_dict = patient_data.model_dump(by_alias=True, exclude={"patient_id", "assessment_mode", "confirmed_measurements", "input_sources"})
 
         df = pd.DataFrame([raw_dict])
         aligned_df = prepare_features(df, feature_names=self.bundle["feature_names"])
@@ -231,7 +229,9 @@ class PredictionService:
                 raise RuntimeError("Model pipeline weights not loaded. Run train_pipeline.py first.")
 
         vector, aligned_df = self._prepare_patient_feature_vector(patient_data)
-        clinical_inputs = patient_data.model_dump(by_alias=True, exclude={"patient_id"})
+        clinical_inputs = patient_data.model_dump(by_alias=True, exclude={"patient_id", "assessment_mode", "confirmed_measurements", "input_sources"})
+        from backend.cardio.service.deployed_explanation import explain_predictions
+        prediction_explanations = explain_predictions(patient_data, self.bundle)
 
         target_risks: Dict[str, VesselRiskInfo] = {}
         shap_explanations: Dict[str, List[SHAPFeatureImpact]] = {}
@@ -239,10 +239,13 @@ class PredictionService:
         for target in TARGET_NAMES:
             model = self.bundle["calibrated_models"][target]
             proba = float(model.predict_proba(vector)[0, 1])
+            threshold = float(self.bundle.get('decision_thresholds', {}).get(target, .5))
+            if not np.isfinite(proba) or not 0 <= proba <= 1 or not np.isfinite(threshold) or not 0 <= threshold <= 1:
+                raise ValueError('Invalid model probability or classification threshold')
+            predicted_status = ('CAD' if target == 'CAD' else 'Stenotic') if proba >= threshold else 'Normal'
+            risk_level, color_hex = self._determine_risk_level(proba)
             proba = round(proba, 4)
             proba_pct = round(proba * 100.0, 1)
-
-            risk_level, color_hex = self._determine_risk_level(proba)
 
             target_risks[target] = VesselRiskInfo(
                 vessel=target,
@@ -251,6 +254,8 @@ class PredictionService:
                 risk_level=risk_level,
                 color_hex=color_hex,
                 anatomical_description=TARGET_DESCRIPTIONS[target],
+                predicted_status=predicted_status,
+                decision_threshold=threshold,
             )
 
             # Compute TreeSHAP local values for this patient
@@ -312,16 +317,18 @@ class PredictionService:
             },
             vessel_colors_3d=vessel_colors_3d,
             shap_explanations=shap_explanations,
+            prediction_explanations=prediction_explanations,
             disclaimer=CLINICAL_SAFETY_DISCLAIMER,
             evidence=PredictionEvidence(
                 assessment_id=str(uuid4()),
                 generated_at=datetime.now(timezone.utc).isoformat(),
                 clinical_inputs=clinical_inputs,
-                prediction_model="Sigmoid-calibrated voting ensemble",
-                explanation_model="Independent XGBoost TreeSHAP (log-odds)",
+                prediction_model='; '.join(f'{target}: {name}' for target, name in self.bundle['prediction_model_names'].items()) if self.bundle.get('prediction_model_names') else "Sigmoid-calibrated voting ensemble",
+                explanation_model="Deployed calibrated predictor: exact domain Shapley (probability); separate independent XGBoost TreeSHAP (log-odds)",
+                input_provenance=patient_data.input_provenance(),
                 application_version=settings.VERSION,
                 model_artifact_sha256=self.model_artifact_sha256,
-                validation_summary={
+                validation_summary=self.bundle.get('model_release', {}).get('validation_summary') or {
                     "record_count": 303,
                     "method": "Supplied stratified 10-fold cross-validation of uncalibrated candidates and soft-voting ensembles",
                     "source": "Supplied benchmark_summary.json; not independently rerun",
@@ -333,9 +340,11 @@ class PredictionService:
                     "limitations": "These benchmarks do not measure the deployed sigmoid-calibrated models. No external validation, calibration curves or confidence intervals are supplied.",
                 },
                 limitations=[
-                    "Confidence intervals are not available in the supplied model bundle.",
+                    "Confidence intervals are not available for this model release.",
                     "Clinical calibration and external validation have not been established. Training used 303 records.",
-                    "SHAP describes an independent XGBoost model; contributions do not exactly explain the ensemble probability.",
+                    "SHAP describes an independent XGBoost model; contributions do not exactly explain the calibrated prediction probability.",
+                    "Primary domain attributions reconstruct the deployed probability relative to an explicit synthetic reference. They are not causal, population-conditional or individual-feature explanations.",
+                    "Classification thresholds are research operating points, distinct from artery display bands and not validated clinical decision boundaries.",
                     "35% and 65% are display thresholds, not validated clinical decision boundaries.",
                     "Whole-vessel scores do not locate lesions or measure percentage blockage. Anatomy is a reference model, not patient-specific imaging.",
                 ],

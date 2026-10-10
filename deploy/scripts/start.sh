@@ -52,7 +52,7 @@ uv pip install --python "$PYTHON" -r backend/requirements.txt
 npm --prefix frontend ci --no-audit --no-fund
 "$PYTHON" -m alembic upgrade head
 
-"$PYTHON" -m uvicorn backend.main:app --host 127.0.0.1 --port "$BACKEND_PORT" &
+"$PYTHON" -m uvicorn backend.main:app --host 127.0.0.1 --port "$BACKEND_PORT" --no-access-log &
 BACKEND_PID=$!
 # Run Vite directly so cleanup owns the actual server process, not an npm wrapper.
 (

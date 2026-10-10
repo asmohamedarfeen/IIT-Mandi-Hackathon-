@@ -30,10 +30,16 @@ def test_benchmarks_endpoint(client):
     assert "LCX" in data["targets"]
     assert "RCA" in data["targets"]
 
-    # Check ensemble metrics
+    # Release evidence must identify the serving weights, with legacy compatibility.
     cad_models = data["targets"]["CAD"]
-    assert "Ensemble (Soft-Voting)" in cad_models
-    assert cad_models["Ensemble (Soft-Voting)"]["roc_auc"] > 0.85
+    if data.get('evaluation'):
+        from backend.cardio.service.prediction_service import prediction_service_instance
+        assert data['model_release']['release_model_sha256'] == prediction_service_instance.model_artifact_sha256
+        assert cad_models['Previous calibrated configuration']['roc_auc'] > .85
+        assert len(cad_models) == 2
+    else:
+        assert "Ensemble (Soft-Voting)" in cad_models
+        assert cad_models["Ensemble (Soft-Voting)"]["roc_auc"] > 0.85
 
 
 def test_sample_patients_endpoint(client):

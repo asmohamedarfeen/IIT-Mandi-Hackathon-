@@ -37,7 +37,7 @@ SOURCE_FILES = ['backend/model_quality/evaluation.py', 'backend/model_quality/me
                 'backend/cardio/service/__init__.py',
                 'backend/cardio/constants.py', 'scripts/evaluate_model_quality.py',
                 'backend/requirements.lock.txt']
-SELECTED_MODEL = 'CalibratedVoting'
+SELECTED_MODEL = 'DeployedConfiguration'
 # Detect edits made after these modules were imported but before a run begins.
 IMPORTED_SOURCE_HASHES = {relative: sha256((ROOT / relative).read_bytes()).hexdigest() for relative in SOURCE_FILES}
 
@@ -92,7 +92,7 @@ def class_counts(y):
     return {'positive': int(np.sum(y)), 'negative': int(len(y) - np.sum(y)), 'total': len(y)}
 
 
-def evaluate_estimator(estimator, raw, y, splits, feature_names=None, stability=False, seed=42):
+def evaluate_estimator(estimator, raw, y, splits, feature_names=None, stability=False, seed=42, threshold=.5):
     """Fit unfitted clones and preserve every outer-held-out probability once."""
     y = np.asarray(y, dtype=int)
     n = len(y)
@@ -113,7 +113,7 @@ def evaluate_estimator(estimator, raw, y, splits, feature_names=None, stability=
         validated_arrays(y[test], predicted)
         probabilities[test] = predicted
         fold_ids[test] = fold
-        fold_metrics.append({key: value for key, value in binary_metrics(y[test], predicted).items() if key in METRIC_KEYS})
+        fold_metrics.append({key: value for key, value in binary_metrics(y[test], predicted, threshold).items() if key in METRIC_KEYS})
         stream = BytesIO()
         joblib.dump(fitted, stream)
         hashes.append(sha256(stream.getvalue()).hexdigest())
@@ -133,11 +133,11 @@ def evaluate_estimator(estimator, raw, y, splits, feature_names=None, stability=
         print(f'    fold {fold}/{len(splits)} complete', flush=True)
     if np.any(fold_ids == 0) or not np.isfinite(probabilities).all():
         raise ValueError('Outer folds do not partition all rows exactly once')
-    metrics = binary_metrics(y, probabilities)
+    metrics = binary_metrics(y, probabilities, threshold)
     result = {'metrics': {key: metrics[key] for key in METRIC_KEYS},
-              'undefined_metrics': diagnostics(y, probabilities)['undefined_metrics'],
+              'undefined_metrics': diagnostics(y, probabilities, threshold)['undefined_metrics'],
               'fold_metrics': fold_metrics, 'fold_model_hashes': hashes, 'fold_fit_seconds': timings,
-              'diagnostics': diagnostics(y, probabilities),
+              'diagnostics': diagnostics(y, probabilities, threshold),
               'fold_summary': {key: {'mean': float(np.mean([row[key] for row in fold_metrics if row[key] is not None])),
                                     'std': float(np.std([row[key] for row in fold_metrics if row[key] is not None], ddof=1))}
                                for key in METRIC_KEYS if sum(row[key] is not None for row in fold_metrics) >= 2}}
@@ -204,7 +204,18 @@ def estimator_parameters(estimator):
     return convert(estimator)
 
 
-def evaluate_dataset(dataset, bundle_path, output_directory, seed=42, outer_folds=10, inner_folds=5):
+def production_pipeline(saved_calibrated, feature_names):
+    """Preserve each target's exact calibration recipe; learn preprocessing in inner folds."""
+    calibrated = clone(saved_calibrated)
+    calibrated.estimator = Pipeline([
+        ('preprocess', ClinicalPreprocessor(feature_names)),
+        ('model', bounded_threads(clone(saved_calibrated.estimator))),
+    ])
+    calibrated.n_jobs = 1
+    return calibrated
+
+
+def evaluate_dataset(dataset, bundle_path, output_directory, seed=42, outer_folds=10, inner_folds=5, production_only=False):
     started = datetime.now(timezone.utc).isoformat()
     timer = time.monotonic()
     dataset, bundle_path = Path(dataset).resolve(), Path(bundle_path).resolve()
@@ -224,7 +235,7 @@ def evaluate_dataset(dataset, bundle_path, output_directory, seed=42, outer_fold
     if not background_matches:
         raise ValueError('Current feature definitions do not reproduce saved model reference background')
     inputs = raw.drop(columns=LEAKAGE_COLUMNS, errors='ignore')
-    candidates = get_candidate_models(seed, include_additional=True)
+    candidates = {} if production_only else get_candidate_models(seed, include_additional=True)
     models_metadata = []
     results, audit_targets = {}, {}
     with threadpool_limits(limits=1):
@@ -235,7 +246,7 @@ def evaluate_dataset(dataset, bundle_path, output_directory, seed=42, outer_fold
             splits = list(StratifiedKFold(outer_folds, shuffle=True, random_state=seed).split(inputs, y))
             saved_calibrated = bundle['calibrated_models'][target]
             voting = clone(saved_calibrated.estimator)
-            estimators = {**candidates, 'Voting': voting}
+            estimators = {**candidates, 'UncalibratedProduction': voting}
             pipelines = {}
             for name, estimator in estimators.items():
                 stages = [('preprocess', ClinicalPreprocessor(feature_names))]
@@ -245,17 +256,24 @@ def evaluate_dataset(dataset, bundle_path, output_directory, seed=42, outer_fold
                     estimator = clone(estimator).set_params(probability=False)
                 pipeline = Pipeline(stages + [('model', bounded_threads(estimator))])
                 pipelines[name] = CalibratedClassifierCV(pipeline, method='sigmoid', cv=inner_folds, n_jobs=1) if name == 'SVM' else pipeline
-            pipelines[SELECTED_MODEL] = CalibratedClassifierCV(pipelines['Voting'], method=saved_calibrated.method, cv=inner_folds, n_jobs=1, ensemble=saved_calibrated.ensemble)
+            pipelines[SELECTED_MODEL] = production_pipeline(saved_calibrated, feature_names)
             if not models_metadata:
-                models_metadata = [{'id': name, 'name': {'Voting': 'Voting Ensemble', SELECTED_MODEL: 'Sigmoid-calibrated Voting Ensemble', 'LogisticRegression': 'Logistic Regression', 'DecisionTree': 'Decision Tree', 'RandomForest': 'Random Forest', 'ExtraTrees': 'Extra Trees'}.get(name, name),
+                models_metadata = [{'id': name, 'name': {'UncalibratedProduction': 'Uncalibrated deployed recipe', SELECTED_MODEL: 'Deployed calibrated configuration', 'LogisticRegression': 'Logistic Regression', 'DecisionTree': 'Decision Tree', 'RandomForest': 'Random Forest', 'ExtraTrees': 'Extra Trees'}.get(name, name),
                                     'production_configuration': name == SELECTED_MODEL,
-                                    'configuration_source': 'Cloned saved production configuration' if name in ('Voting', SELECTED_MODEL) else 'Shared fixed candidate registry; not deployed',
-                                    'parameters': estimator_parameters(model)} for name, model in pipelines.items()]
+                                    'configuration_source': 'Exact cloned saved recipe; per-target parameters recorded below' if name in ('UncalibratedProduction', SELECTED_MODEL) else 'Shared fixed candidate registry; not deployed',
+                                    'parameters': {'per_target': {}}} for name in pipelines]
+            for metadata in models_metadata:
+                metadata['parameters']['per_target'][target] = estimator_parameters(pipelines[metadata['id']])
+            threshold = float(bundle.get('decision_thresholds', {}).get(target, .5))
+            production_identity = {'name': bundle.get('prediction_model_names', {}).get(target, 'Sigmoid-calibrated voting ensemble'),
+                                   'decision_threshold': threshold, 'calibration_method': saved_calibrated.method,
+                                   'calibration_folds': saved_calibrated.cv}
             target_results, probabilities, fold_ids = {}, {}, None
-            stability_data, shap_data, shap_audit = None, None, None
+            stability_data = {'model': 'Not evaluated', 'method': 'Registry comparator stability omitted in production-only evaluation', 'features': [], 'mean_rank_correlation': None, 'mean_top_k_jaccard': None}
+            shap_data, shap_audit = dict(stability_data), None
             for name, model in pipelines.items():
                 print(f'{target} / {name}', flush=True)
-                result, audit = evaluate_estimator(model, inputs, y, splits, feature_names, stability=name == 'XGBoost', seed=seed)
+                result, audit = evaluate_estimator(model, inputs, y, splits, feature_names, stability=name == 'XGBoost', seed=seed, threshold=threshold if name == SELECTED_MODEL else .5)
                 probabilities[name] = audit['probabilities']
                 fold_ids = audit['fold_ids']
                 if name == 'XGBoost':
@@ -264,7 +282,7 @@ def evaluate_dataset(dataset, bundle_path, output_directory, seed=42, outer_fold
                 target_results[name] = result
             results[target] = {'class_distribution': class_counts(y), 'models': target_results,
                                'folds': [{'fold': i, 'train': class_counts(y[train]), 'test': class_counts(y[test])} for i, (train, test) in enumerate(splits, 1)],
-                               'feature_stability': stability_data, 'shap_stability': shap_data}
+                               'feature_stability': stability_data, 'shap_stability': shap_data, 'production_configuration': production_identity}
             audit_targets[target] = {'labels': y.tolist(), 'fold_ids': fold_ids, 'probabilities': probabilities,
                                      'splits': [{'fold': i, 'train_indices': train.tolist(), 'test_indices': test.tolist()} for i, (train, test) in enumerate(splits, 1)], 'explanation_audit': shap_audit}
     assert_unchanged(frozen)
@@ -275,7 +293,7 @@ def evaluate_dataset(dataset, bundle_path, output_directory, seed=42, outer_fold
         'Internal single-cohort cross-validation of fixed cloned configurations, not external clinical validation of fitted production weights.',
         'Model configurations were historically developed using this cohort; outer CV does not remove earlier model-selection bias.',
         'Threshold exploration uses these OOF outcomes; choosing a threshold here is exploratory, not an unbiased clinical operating-point validation.',
-        'SHAP and feature stability explain the independent XGBoost classifier, not the calibrated voting ensemble; TreeSHAP units are raw log-odds.',
+        'SHAP and feature stability, when present, explain the independent XGBoost comparator, not the deployed calibrated configuration; TreeSHAP units are raw log-odds.',
         'Permutation importance perturbs engineered columns independently. Correlated and derived features may split importance or produce implausible combinations.',
         'Fold dispersion is descriptive, not a confidence interval. Small reliability-bin counts have substantial sampling uncertainty.',
         'Original model training timestamp and historical selection decision log were not supplied. The evaluated configuration is identified by its saved artifact hash.',
@@ -289,8 +307,8 @@ def evaluate_dataset(dataset, bundle_path, output_directory, seed=42, outer_fold
                               'feature_sha256': sha256(_json_bytes(feature_names)).hexdigest(), 'feature_names': feature_names,
                               'python_version': platform.python_version(), 'platform': platform.platform(),
                               'library_versions': {name: version(name) for name in ['numpy', 'pandas', 'scikit-learn', 'scipy', 'xgboost', 'lightgbm', 'catboost', 'shap', 'joblib', 'openpyxl']},
-                              'random_seed': seed, 'outer_folds': outer_folds, 'inner_folds': inner_folds,
-                              'command': command, 'verify_command': verify_command,
+                              'random_seed': seed, 'outer_folds': outer_folds, 'inner_folds': inner_folds, 'production_only': production_only, 'evaluation_method': 'Fixed deployed per-target recipes and saved thresholds; refitted outer OOF, not nested selection-strategy evaluation',
+                              'command': command + (' --production-only' if production_only else ''), 'verify_command': verify_command,
                               'preprocessing': 'Fixed category normalization and row-local clinical engineering; training-only measurement medians/category modes; saved ordered float32 feature contract. Scaling/calibration inside estimator pipelines.',
                               'started_at': started, 'completed_at': datetime.now(timezone.utc).isoformat(), 'runtime_seconds': time.monotonic() - timer,
                               'training_timestamp': None, 'model_parameters': {target: estimator_parameters(bundle['calibrated_models'][target]) for target in TARGET_NAMES}},
@@ -302,7 +320,7 @@ def evaluate_dataset(dataset, bundle_path, output_directory, seed=42, outer_fold
                                                    {'check': 'Duplicate full rows', 'passed': duplicates == 0, 'detail': f'{duplicates} duplicate complete records; grouped patient validation not possible without patient identifiers.'},
                                                    {'check': 'Independent external cohort', 'passed': False, 'detail': 'No independent external dataset was supplied.'}]},
                'models': models_metadata, 'targets': results, 'limitations': limitations,
-               'supplied_benchmarks': {'targets': json.loads(frozen['input_bytes'][benchmark_path]).get('targets', {}) if benchmark_path in frozen['input_bytes'] else {}}}
+               'supplied_benchmarks': {'targets': json.loads(frozen['input_bytes'][benchmark_path]).get('targets', {}) if benchmark_path in frozen['input_bytes'] else {}, 'evaluation': json.loads(frozen['input_bytes'][benchmark_path]).get('evaluation') if benchmark_path in frozen['input_bytes'] else None}}
     audit = {'schema_version': 1, 'run_id': run_id, 'targets': audit_targets}
     # Validate the full public artifact before atomically publishing the run.
     validated = Summary.model_validate(summary)

@@ -1,5 +1,7 @@
 # Model and anatomy audit
 
+> Historical snapshot: this document describes the 8 October 2026 checkout and original model. Current release and explanation contracts are in [MODEL_CARD.md](MODEL_CARD.md); historical hashes, measurements and claims below are preserved for traceability.
+
 Verified locally on 2026-10-08 using the supplied files. No training, medical literature research or external validation was performed.
 
 ## Preserved model and inference contract

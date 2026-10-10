@@ -8,6 +8,7 @@ import { createServer } from "vite";
 const compiler = await createServer({ root: new URL("../", import.meta.url).pathname, server: { middlewareMode: true, hmr: false, ws: false }, appType: "custom" });
 const { CoronaryEvidencePanel } = await compiler.ssrLoadModule("/src/components/CoronaryEvidencePanel.tsx");
 const { SHAPExplanationChart } = await compiler.ssrLoadModule("/src/components/SHAPExplanationChart.tsx");
+const { RiskSummaryCards } = await compiler.ssrLoadModule("/src/components/RiskSummaryCards.tsx");
 test.after(() => compiler.close());
 const risk = (vessel, score) => ({ vessel, probability: score / 100, probability_percent: score, color_hex: "#22C55E", risk_level: "Low Risk", anatomical_description: `${vessel} territory` });
 const prediction = {
@@ -58,4 +59,37 @@ test("artery evidence and overall CAD explanation have distinct accessible headi
   assert.equal(new Set(ids).size, ids.length);
   assert.match(html, /CAD contributing factors/);
   assert.match(html, /LAD contributing factors/);
+});
+
+test("risk cards show model classification separately from probability bands and hide stale status", () => {
+  const result = { ...prediction, overall_cad: { ...prediction.overall_cad, predicted_status: "CAD", decision_threshold: .25 } };
+  const html = renderToStaticMarkup(React.createElement(RiskSummaryCards, { prediction: result, stale: false }));
+  assert.match(html, /Predicted status: CAD/);
+  assert.match(html, /Low Risk/);
+  const stale = renderToStaticMarkup(React.createElement(RiskSummaryCards, { prediction: result, stale: true }));
+  assert.doesNotMatch(stale, /Predicted status: CAD/);
+});
+
+test('assessment measurements expose saved source and confirmation rather than current form assumptions',()=>{
+ const result = {...prediction,evidence:{...prediction.evidence,input_provenance:{assessment_mode:'demo',measurements:{Age:{source:'supplied',confirmed:false},BP:{source:'defaulted',confirmed:false}}}}};
+ const html = render('lad',false,result);
+ assert.match(html,/Assessment mode: demo/);
+ assert.match(html,/supplied · unconfirmed/);
+ assert.match(html,/defaulted · unconfirmed/);
+ assert.match(html,/Source\/confirmation unavailable/);
+});
+
+test('primary deployed explanation shows additive probability units and remains hidden when stale',()=>{
+ const explanation = {method:'exact_domain_shapley',reference_type:'synthetic_default_profile',reference_inputs:{Age:55,BP:120},baseline_probability:.2,predicted_probability:.3,reconstruction_error:0,groups:[{id:'profile',label:'Profile domain',contribution:.1}],limitations:'Dependent derived inputs recomputed.'};
+ const result = {...prediction,prediction_explanations:{LAD:explanation}};
+ const html = render('lad',false,result);
+ assert.match(html,/Deployed predictor explanation/);
+ assert.match(html,/Profile domain/);
+ assert.match(html,/Synthetic default profile/);
+ assert.match(html,/Inspect reference measurements/);
+ assert.match(html,/120 mmHg/);
+ assert.match(html,/10.00 probability points/);
+ assert.match(html,/Baseline probability: 20.00%/);
+ assert.match(html,/Historical independent XGBoost factors/);
+ assert.doesNotMatch(render('lad',true,result),/Profile domain/);
 });

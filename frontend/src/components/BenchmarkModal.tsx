@@ -31,12 +31,12 @@ export function BenchmarkModal({
       title="The evidence behind the model"
     >
       <p className="modal-lead">
-        Recorded stratified 10-fold cross-validation on 303 records.
+        {benchmarkData?.evaluation ? benchmarkData.evaluation.method : "Recorded stratified 10-fold cross-validation on 303 records."}
       </p>
       <p className="evidence-note">
-        These metrics evaluate uncalibrated candidate models. The deployed
-        ensemble is calibrated afterward; these scores do not establish its
-        clinical calibration or external performance.
+        {benchmarkData?.evaluation
+          ? "Previous and released strategies are compared on the same held-out patients. Model and classification threshold selection happen within training folds. Results describe internal evaluation of the selection procedure. The release was chosen after reviewing outer results, and earlier searches reused this cohort; the final fitted weights have no independent external validation."
+          : "These metrics evaluate uncalibrated candidate models. The deployed ensemble is calibrated afterward; these scores do not establish its clinical calibration or external performance."}
       </p>
       <div className="segmented">
         {["CAD", "LAD", "LCX", "RCA"].map((t) => (
@@ -73,7 +73,7 @@ export function BenchmarkModal({
                   <tr key={model}>
                     <th scope="row">{model}</th>
                     {metrics.map(([key]) => (
-                      <td key={key}>{scores[key].toFixed(3)}</td>
+                      <td key={key}>{typeof scores[key] === 'number' ? scores[key].toFixed(3) : 'N/A'}</td>
                     ))}
                   </tr>
                 ),

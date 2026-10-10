@@ -2,7 +2,7 @@ import { useId } from "react";
 import { displayMetric } from "./hooks";
 import type { PlotSeries } from "./types";
 
-export function Charts({ kind, series, baseline }: { kind: "roc" | "pr" | "calibration" | "histogram" | "threshold"; series: PlotSeries[]; baseline?: number }) {
+export function Charts({ kind, series, baseline, operatingPoint }: { kind: "roc" | "pr" | "calibration" | "histogram" | "threshold"; series: PlotSeries[]; baseline?: number; operatingPoint?: {x:number;y:number;threshold:number} }) {
   const id = useId();
   const labels = {
     roc: ["ROC curve", "False positive rate", "Sensitivity"],
@@ -19,7 +19,7 @@ export function Charts({ kind, series, baseline }: { kind: "roc" | "pr" | "calib
   return <div className="mq-chart">
     <svg viewBox="0 0 560 320" role="img" aria-labelledby={`${id}-title ${id}-desc`}>
       <title id={`${id}-title`}>{labels[0]}</title>
-      <desc id={`${id}-desc`}>{labels[1]} on the horizontal axis; {labels[2]} on the vertical axis. Saved out-of-fold evaluation data. Exact values are available in the table below.</desc>
+      <desc id={`${id}-desc`}>{labels[1]} on the horizontal axis; {labels[2]} on the vertical axis. Saved out-of-fold evaluation data. {kind === "roc" && operatingPoint ? `The selected ${operatingPoint.threshold.toFixed(2)} threshold is marked at false positive rate ${operatingPoint.x.toFixed(3)} and sensitivity ${operatingPoint.y.toFixed(3)}. ` : ""}Exact values are available in the table below.</desc>
       {[0,.25,.5,.75,1].map(tick=><g key={tick} className="mq-axis">
         <line x1="64" x2="504" y1={y(tick*maxY)} y2={y(tick*maxY)} />
         <text x="54" y={y(tick*maxY)+4} textAnchor="end">{displayMetric(tick*maxY,kind==="histogram"?0:2)}</text>
@@ -35,6 +35,7 @@ export function Charts({ kind, series, baseline }: { kind: "roc" | "pr" | "calib
           {kind==="calibration" && item.points.map((point,i)=><circle key={i} cx={x(point.x)} cy={y(point.y)} r="4" />)}
         </>}
       </g>)}
+      {kind === "roc" && operatingPoint && <g className="mq-operating-point"><circle cx={x(operatingPoint.x)} cy={y(operatingPoint.y)} r="6" aria-label={`Selected threshold ${operatingPoint.threshold.toFixed(2)}: false positive rate ${operatingPoint.x.toFixed(3)}, sensitivity ${operatingPoint.y.toFixed(3)}`}><title>{`Threshold ${operatingPoint.threshold.toFixed(2)} · FPR ${operatingPoint.x.toFixed(3)} · sensitivity ${operatingPoint.y.toFixed(3)}`}</title></circle></g>}
       <text className="mq-axis-label" x="284" y="308" textAnchor="middle">{labels[1]}</text>
       <text className="mq-axis-label" transform="translate(16 154) rotate(-90)" textAnchor="middle">{labels[2]}</text>
     </svg>

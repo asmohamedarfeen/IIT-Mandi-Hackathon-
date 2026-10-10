@@ -16,6 +16,10 @@ export function CoronaryEvidencePanel({ prediction, selected, onSelect, stale, b
   const vessel = VESSELS.find(vessel => vessel.key === selected);
   const context = evidence?.context;
   const inputs = context?.clinical_inputs;
+  const sourceLabel = (key: string) => {
+    const metadata = context?.input_provenance?.measurements[key];
+    return metadata ? `${metadata.source} · ${metadata.confirmed ? "confirmed" : "unconfirmed"}${metadata.modeled === false ? " · excluded from model" : ""}` : "Source/confirmation unavailable";
+  };
   return (
     <section id="coronary-evidence" className="coronary-evidence" aria-labelledby="coronary-evidence-title" aria-busy={busy}>
       <div className="evidence-header">
@@ -50,16 +54,17 @@ export function CoronaryEvidencePanel({ prediction, selected, onSelect, stale, b
             <h3>Measurements used in this assessment</h3>
             <p>These inputs inform all vessel models. They are not direct measurements of this artery.</p>
             {inputs ? <>
+              <p>Assessment mode: {context?.input_provenance?.assessment_mode ?? "unavailable (historical snapshot)"}. Sources and review attestations belong to this saved assessment.</p>
               <dl className="measurement-grid">
                 {(["Age", "BP", "LDL", "HDL", "FBS", "EF-TTE", "BMI", "DM"] as const).map(key => <div key={key}>
                   <dt>{key === "EF-TTE" ? "Ejection fraction" : key === "DM" ? "Diabetes" : key === "BP" ? "Systolic pressure" : key}</dt>
-                  <dd>{formatMeasurement(key, inputs[key])}</dd>
+                  <dd>{formatMeasurement(key, inputs[key])}<small>{sourceLabel(key)}</small></dd>
                 </div>)}
               </dl>
               <details className="evidence-inputs">
                 <summary>View all assessed clinical inputs</summary>
                 {FIELD_GROUPS.map(group => <div key={group.title}><h4>{group.title}</h4><dl className="measurement-grid">
-                  {group.fields.map(field => <div key={field.key}><dt>{field.label}</dt><dd>{formatMeasurement(field.key, inputs[field.key])}</dd></div>)}
+                  {group.fields.map(field => <div key={field.key}><dt>{field.label}</dt><dd>{formatMeasurement(field.key, inputs[field.key])}<small>{sourceLabel(field.key)}</small></dd></div>)}
                 </dl></div>)}
               </details>
             </> : <p>Input provenance is unavailable from this model service. Update the backend and reassess.</p>}
@@ -78,7 +83,7 @@ export function CoronaryEvidencePanel({ prediction, selected, onSelect, stale, b
             <dt>Prediction model</dt><dd>{context?.prediction_model || "Unavailable"}</dd>
             <dt>Explanation model</dt><dd>{context?.explanation_model || "Unavailable"}</dd>
           </dl>
-          <pre>{JSON.stringify({ assessment_id: context?.assessment_id, patient_id: prediction?.patient_id, target: evidence.target, result: evidence.risk, mesh_color: evidence.meshColor, shap_explanations: evidence.factors }, null, 2)}</pre>
+          <pre>{JSON.stringify({ assessment_id: context?.assessment_id, patient_id: prediction?.patient_id, target: evidence.target, result: evidence.risk, mesh_color: evidence.meshColor, input_provenance: context?.input_provenance, shap_explanations: evidence.factors }, null, 2)}</pre>
         </details>
       </>}
     </section>

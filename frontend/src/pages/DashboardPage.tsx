@@ -19,6 +19,7 @@ import {
   DEFAULT_PATIENT,
   normalizePatient,
   sampleVessels,
+  reviewedIssues,
 } from "../utils/patient";
 import {
   PatientData,
@@ -106,7 +107,7 @@ export function DashboardPage({ active = true }: { active?: boolean }) {
     setError("");
     setSelectedSample("");
     if (prediction && health === "ready") {
-      assessment.schedule(next, () => Boolean(formHost.current?.querySelector("form")?.checkValidity()));
+      assessment.schedule(next, () => Boolean(formHost.current?.querySelector("form")?.checkValidity() && !reviewedIssues(next).length));
     }
   }
   function selectSample(sample: SamplePatient) {
@@ -153,7 +154,8 @@ export function DashboardPage({ active = true }: { active?: boolean }) {
         <div className="case-carousel">
           <div className="case-intro">
             <p className="eyebrow">Sample cases</p>
-            <p>Examples from the training dataset.</p>
+            <p>Examples from the training dataset; not held-out validation cases.</p>
+            {samples.length > 0 && samples.every(sample => ["1", "cad", "positive", "yes"].includes(String(sample.ground_truth.CAD).toLowerCase())) && <p>Available examples all have recorded CAD. They do not demonstrate normal-case coverage.</p>}
           </div>
           <div className="case-body" aria-live="polite">
             {sample ? (
@@ -264,7 +266,7 @@ export function DashboardPage({ active = true }: { active?: boolean }) {
             {busy
               ? "Assessment in progress…"
               : stale
-                ? "Inputs changed. Valid edits update automatically; review invalid fields or retry the assessment."
+                ? "Inputs changed. Review edited fields and confirm reviewed-case measurements before reassessing."
                 : prediction
                   ? `Assessment complete · ${prediction.patient_id}`
                   : "Complete the form to generate model estimates."}

@@ -1,0 +1,88 @@
+{
+  "status": "Retrospective registry of existing experiments; not preregistration",
+  "experiments": [
+    {
+      "run_id": "20261010T042937Z-eb74261c",
+      "deployed": false,
+      "method": "Nested stratified 10-fold outer evaluation, 3-fold inner model/threshold selection, sigmoid calibration within each estimator fit.",
+      "tuned_targets": [
+        "CAD",
+        "LAD",
+        "LCX",
+        "RCA"
+      ],
+      "outcome": {
+        "CAD": {
+          "promoted": false,
+          "baseline_accuracy": 0.8877887788778878,
+          "candidate_accuracy": 0.8712871287128713
+        },
+        "LAD": {
+          "promoted": false,
+          "baseline_accuracy": 0.8052805280528053,
+          "candidate_accuracy": 0.801980198019802
+        },
+        "LCX": {
+          "promoted": false,
+          "baseline_accuracy": 0.7128712871287128,
+          "candidate_accuracy": 0.6864686468646864
+        },
+        "RCA": {
+          "promoted": false,
+          "baseline_accuracy": 0.6765676567656765,
+          "candidate_accuracy": 0.6765676567656765
+        }
+      },
+      "source_hashes": {
+        "backend/cardio/constants.py": "ad7a009f5578506d211472b85657a2d68fabee4d551b2571b9e9e5ea4367bdc9",
+        "backend/cardio/service/feature_service.py": "833d51159ff785fab539803f3a2d31c4197eacb0e59654af56a52707c8366c44",
+        "backend/model_quality/improvement.py": "f12e801d33aefdde6a48890dc3ff54ba87e1a920c927305e180869da7ae0e176",
+        "backend/model_quality/metrics.py": "712c893fabc63ad832a181a42c0504ef48bea475e31a9b671bb14871e2da4977",
+        "backend/model_quality/models.py": "591f8c23f13d4f6e17474595df2fcbab33a523caf1a61af41a35677d9645d392",
+        "backend/requirements.lock.txt": "90381dd3a59472ce63b44a3b8603e489e5328778a83ea349dcae77abb6f740f0",
+        "scripts/improve_models.py": "8082036aeca7336b4da8818215df6e2798d20582bf7acb525e509bc12fdef3fc"
+      },
+      "summary_path": "artifacts/model_releases/20261010T042937Z-eb74261c/summary.json"
+    },
+    {
+      "run_id": "20261010T044519Z-77a76019",
+      "deployed": true,
+      "method": "Paired stratified 10-fold outer evaluation; 3-fold inner model/threshold selection for RCA; sigmoid calibration within each estimator fit. Other targets retain their current configuration and threshold.",
+      "tuned_targets": [
+        "RCA"
+      ],
+      "outcome": {
+        "CAD": {
+          "promoted": false,
+          "baseline_accuracy": 0.8877887788778878,
+          "candidate_accuracy": 0.8877887788778878
+        },
+        "LAD": {
+          "promoted": false,
+          "baseline_accuracy": 0.8052805280528053,
+          "candidate_accuracy": 0.8052805280528053
+        },
+        "LCX": {
+          "promoted": false,
+          "baseline_accuracy": 0.7128712871287128,
+          "candidate_accuracy": 0.7128712871287128
+        },
+        "RCA": {
+          "promoted": true,
+          "baseline_accuracy": 0.6765676567656765,
+          "candidate_accuracy": 0.6831683168316832
+        }
+      },
+      "source_hashes": {
+        "backend/cardio/constants.py": "ad7a009f5578506d211472b85657a2d68fabee4d551b2571b9e9e5ea4367bdc9",
+        "backend/cardio/service/feature_service.py": "833d51159ff785fab539803f3a2d31c4197eacb0e59654af56a52707c8366c44",
+        "backend/model_quality/improvement.py": "7df70a2535ce48cdd6de6b1b1b7c36cdda56b0b949533d509df15e702c74b53e",
+        "backend/model_quality/metrics.py": "712c893fabc63ad832a181a42c0504ef48bea475e31a9b671bb14871e2da4977",
+        "backend/model_quality/models.py": "591f8c23f13d4f6e17474595df2fcbab33a523caf1a61af41a35677d9645d392",
+        "backend/requirements.lock.txt": "90381dd3a59472ce63b44a3b8603e489e5328778a83ea349dcae77abb6f740f0",
+        "scripts/improve_models.py": "f27a7335988fd2cd2035335edafdcd28e25cb6151661c66815532af4e15e40e6"
+      },
+      "summary_path": "artifacts/model_releases/20261010T044519Z-77a76019/summary.json"
+    }
+  ]
+}

@@ -107,6 +107,14 @@ def health_check(response: Response, service=Depends(get_prediction_service)):
     }
 
 
+# Optional: Mount static frontend when SERVE_FRONTEND is enabled (for single-container cloud hosting)
+SERVE_FRONTEND = os.getenv("SERVE_FRONTEND", "false").lower() in {"1", "true", "yes"}
+STATIC_DIR = os.getenv("STATIC_DIR", str(PROJECT_ROOT / "frontend" / "dist"))
+if SERVE_FRONTEND and os.path.isdir(STATIC_DIR):
+    from fastapi.staticfiles import StaticFiles
+    app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("backend.main:app", host="127.0.0.1", port=8000, reload=True, app_dir=str(PROJECT_ROOT), access_log=False)

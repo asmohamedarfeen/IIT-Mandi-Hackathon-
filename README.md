@@ -348,16 +348,22 @@ VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1 npm run dev -- --host 127.0.0.1 -
 
 ---
 
-### Method 3: Docker & Docker Compose
+### Method 3: Docker Compose Hosting (Root 1-Command)
 
-Deploy the entire containerized stack with a single command:
+Deploy the full-stack containerized platform (Nginx reverse proxy + React SPA + FastAPI backend + SQLite persistent volume) straight from the project root:
 
 ```bash
-cd deploy/docker
-docker compose up --build
+# Standard local & server hosting
+docker compose up -d --build
+
+# Or automated production script with health verification
+./deploy/scripts/deploy.sh
 ```
-- **Web Application**: [http://localhost](http://localhost) (via Nginx reverse proxy)
-- **FastAPI API**: [http://localhost:8000](http://localhost:8000)
+- 🌐 **Web Application**: [http://localhost](http://localhost) (via Nginx reverse proxy)
+- 📚 **FastAPI API & Swagger**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- 🩺 **Readiness Healthcheck**: [http://localhost:8000/health](http://localhost:8000/health)
+
+*(For cloud PaaS deployment on Render, Railway, Fly.io, or dedicated VPS with SSL, see the [Production Hosting Guide](docs/HOSTING_GUIDE.md)).*
 
 ---
 
@@ -455,6 +461,7 @@ The FastAPI backend exposes fully typed REST endpoints under `/api/v1`:
 | **Data Transfer Pipeline** | Detailed runtime contract, feature mapping, and persistence lifecycle. | [`docs/DATA_PIPELINE.md`](docs/DATA_PIPELINE.md) |
 | **Model & Anatomy Audit** | Rigorous verification of BodyParts3D provenance, vertex counts, and hashes. | [`docs/MODEL_AND_ANATOMY_AUDIT.md`](docs/MODEL_AND_ANATOMY_AUDIT.md) |
 | **Verification Evidence** | Detailed test execution logs, browser matrix, and performance metrics. | [`docs/verification.md`](docs/verification.md) |
+| **Production Hosting Guide** | Comprehensive guide for Docker Compose, VPS, Cloud PaaS (Render/Fly/Railway), and SSL. | [`docs/HOSTING_GUIDE.md`](docs/HOSTING_GUIDE.md) |
 
 ---
 

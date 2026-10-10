@@ -1,0 +1,25 @@
+# Render.com Blueprint Specification for CardioVision AI
+# Deploy with 1-click on https://render.com via 'New Blueprint Instance'
+services:
+  - type: web
+    name: cardiovision-ai
+    runtime: docker
+    dockerfilePath: Dockerfile
+    plan: starter
+    region: oregon
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        value: sqlite:////app/data/cardiovision.db
+      - key: SERVE_FRONTEND
+        value: "true"
+      - key: AUTO_CREATE_TABLES
+        value: "false"
+      - key: ALLOWED_ORIGINS
+        value: '["https://cardiovision-ai.onrender.com","http://localhost:8000"]'
+    disk:
+      name: cardiovision-data
+      mountPath: /app/data
+      sizeGB: 1
+    healthCheckPath: /health

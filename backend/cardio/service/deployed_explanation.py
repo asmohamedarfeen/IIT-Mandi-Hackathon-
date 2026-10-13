@@ -6,9 +6,21 @@ recomputed. The finite group game is exact; it is not individual-feature SHAP,
 conditional/population attribution, a clinical counterfactual, or causal evidence.
 """
 from math import factorial
+import warnings
 
 import numpy as np
 import pandas as pd
+
+warnings.filterwarnings(
+    "ignore",
+    message=".*X does not have valid feature names, but LGBMClassifier was fitted with feature names.*",
+    category=UserWarning,
+)
+warnings.filterwarnings(
+    "ignore",
+    message=".*X has feature names, but.*was fitted without feature names.*",
+    category=UserWarning,
+)
 
 from backend.cardio.schemas.patient_schema import PatientInputSchema
 from backend.cardio.service.feature_service import prepare_features

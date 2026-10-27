@@ -8,6 +8,7 @@ import os
 import json
 import logging
 import hashlib
+import warnings
 from datetime import datetime, timezone
 from uuid import uuid4
 from typing import Dict, Any, List, Optional, Tuple
@@ -15,6 +16,18 @@ import joblib
 import numpy as np
 import pandas as pd
 import shap
+
+# Suppress sklearn/LightGBM feature name validation warning when passing ndarray/clean feature vectors
+warnings.filterwarnings(
+    "ignore",
+    message=".*X does not have valid feature names, but LGBMClassifier was fitted with feature names.*",
+    category=UserWarning,
+)
+warnings.filterwarnings(
+    "ignore",
+    message=".*X has feature names, but.*was fitted without feature names.*",
+    category=UserWarning,
+)
 
 from backend.core.config import settings
 from backend.cardio.constants import (

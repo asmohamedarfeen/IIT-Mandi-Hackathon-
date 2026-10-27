@@ -28,7 +28,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install pinned Python dependencies
 COPY backend/requirements.txt backend/requirements.lock.txt /app/
-RUN pip install --no-cache-dir -r requirements.lock.txt && pip check
+# Retry the whole install for interrupted large wheel downloads. Keep pip's cache
+# between attempts, then remove it so it does not enlarge the final image.
+RUN for attempt in 1 2 3; do \
+        pip install --timeout 120 --retries 10 -r requirements.lock.txt && break; \
+        if [ "$attempt" -eq 3 ]; then exit 1; fi; \
+        echo "Dependency download failed; retrying install ($attempt/3)..."; \
+        sleep 5; \
+    done \
+    && pip check \
+    && pip cache purge
 
 # Copy backend application source and model serving weights
 COPY backend /app/backend
